@@ -42,7 +42,7 @@
 
       <!-- Portal / Role Switcher -->
       <div class="role-switcher-container">
-        <span class="switcher-label">Current Portal:</span>
+        <span class="switcher-label">View Portal:</span>
         <div class="role-pill-group">
           <button id="roleBuyerBtn" class="role-pill active" data-role="buyer">
             <span class="role-emoji">🛍️</span> Commercial Buyer
@@ -53,8 +53,31 @@
         </div>
       </div>
 
-      <!-- Header Quick Actions -->
+      <!-- Auth & Actions -->
       <div class="nav-actions">
+        <!-- Logged In User State -->
+        <div id="userProfileBadge" class="user-badge" style="display: none;">
+          <div class="user-avatar" id="userAvatar">👨‍🌾</div>
+          <div class="user-meta">
+            <span class="user-name" id="userNameText">Sunil Bandara</span>
+            <span class="user-org" id="userOrgText">Pedro Estate • Farmer</span>
+          </div>
+          <button id="logoutBtn" class="btn-logout" title="Sign Out">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          </button>
+        </div>
+
+        <!-- Logged Out Auth Buttons -->
+        <div id="authButtons" class="auth-btn-group">
+          <button id="openLoginBtn" class="btn btn-outline btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            Sign In
+          </button>
+          <button id="openRegisterBtn" class="btn btn-primary btn-sm">
+            Register Free
+          </button>
+        </div>
+
         <button id="farmerPostBtn" class="btn btn-primary btn-post-lot" style="display: none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           List Harvest Lot
@@ -76,6 +99,15 @@
         <p id="heroSubtitle">
           Eliminate broker exploitation. Commercial kitchens, supermarkets, and food processors bid directly on freshly harvested farm lots across Sri Lanka with transparent price discovery and cold-chain escrow delivery.
         </p>
+      </div>
+
+      <!-- Quick Demo Account Bar (Viva / Presentation Shortcut) -->
+      <div class="demo-login-strip">
+        <span class="demo-strip-label">⚡ 1-Click Quick Demo Profiles:</span>
+        <button class="btn-demo-quick" data-email="sunil@farmer.lk" data-role="farmer">👨‍🌾 Sunil Bandara (Nuwara Eliya Leeks)</button>
+        <button class="btn-demo-quick" data-email="kithsiri@farmer.lk" data-role="farmer">👨‍🌾 Kithsiri (Dambulla Onions)</button>
+        <button class="btn-demo-quick" data-email="jerome@hilton.lk" data-role="buyer">🏢 Chef Jerome (Hilton Colombo)</button>
+        <button class="btn-demo-quick" data-email="samantha@keells.lk" data-role="buyer">🏢 Samantha (Keells Logistics)</button>
       </div>
 
       <!-- Exchange KPI Cards -->
@@ -171,20 +203,140 @@
         <span class="lots-count" id="lotsCountText">Showing 5 lots</span>
       </div>
       <div class="farmer-callout" id="farmerCallout" style="display: none;">
-        <span>👨‍🌾 You are viewing in <strong>Farmer Mode</strong>. You can list new produce or award incoming bids to seal contracts.</span>
+        <span>👨‍🌾 You are viewing in <strong>Farmer Mode</strong>. List new produce or award incoming bids to seal contracts.</span>
         <button class="btn btn-sm btn-primary" id="calloutListBtn">➕ Post Harvest</button>
       </div>
     </div>
 
     <!-- Harvest Lots Card Grid -->
     <div class="lots-grid" id="lotsGrid">
-      <!-- Dynamically generated via app.js -->
       <div class="loading-state">
         <div class="spinner"></div>
         <p>Loading active exchange lots from MongoDB...</p>
       </div>
     </div>
   </main>
+
+  <!-- MODAL: AUTH (LOGIN & REGISTER) -->
+  <div class="modal-overlay" id="authModalOverlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab-btn active" id="tabLoginBtn">Sign In</button>
+          <button type="button" class="auth-tab-btn" id="tabRegisterBtn">Register Account</button>
+        </div>
+        <button class="modal-close-btn" id="closeAuthModal">&times;</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="loginForm" class="modal-body auth-form-panel">
+        <div class="auth-panel-heading">
+          <h4>Welcome Back to AgriDirect</h4>
+          <p>Access your farmer command hub or commercial buying portal.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Email Address *</label>
+          <input type="email" id="loginEmail" placeholder="e.g. sunil@farmer.lk" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">Password *</label>
+          <input type="password" id="loginPassword" placeholder="Enter your password" required />
+        </div>
+
+        <div class="demo-credentials-box">
+          <small>🔑 <strong>Demo Accounts (password: <code>password123</code>):</strong><br>
+          • Farmer: <code>sunil@farmer.lk</code> (Pedro Estate, Nuwara Eliya)<br>
+          • Buyer: <code>jerome@hilton.lk</code> (Hilton Colombo Culinary Sourcing)</small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelLoginBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitLoginBtn">Sign In to Exchange</button>
+        </div>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="registerForm" class="modal-body auth-form-panel" style="display: none;">
+        <div class="auth-panel-heading">
+          <h4>Join AgriDirect Exchange</h4>
+          <p>Connect directly with verified farmers and commercial bulk buyers across Sri Lanka.</p>
+        </div>
+
+        <!-- Role Select -->
+        <div class="form-group">
+          <label class="form-label">Select Your Role on the Exchange *</label>
+          <div class="auth-role-select-row">
+            <label class="auth-role-radio">
+              <input type="radio" name="regRole" value="farmer" checked />
+              <div class="role-box">
+                <span class="r-icon">🚜</span>
+                <strong>Harvest Farmer</strong>
+                <small>Post lots & award deals</small>
+              </div>
+            </label>
+            <label class="auth-role-radio">
+              <input type="radio" name="regRole" value="buyer" />
+              <div class="role-box">
+                <span class="r-icon">🛍️</span>
+                <strong>Commercial Buyer</strong>
+                <small>Hotels, supermarkets & processors</small>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label class="form-label" for="regName">Full Contact Name *</label>
+            <input type="text" id="regName" placeholder="e.g. Rohan Senanayake" required />
+          </div>
+          <div class="form-group col-6">
+            <label class="form-label" id="regOrgLabel" for="regOrg">Farm / Estate Name *</label>
+            <input type="text" id="regOrg" placeholder="e.g. Horton Valley Organics" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label class="form-label" for="regEmail">Email Address *</label>
+            <input type="email" id="regEmail" placeholder="e.g. rohan@hortonfarms.lk" required />
+          </div>
+          <div class="form-group col-6">
+            <label class="form-label" for="regPhone">Contact Phone *</label>
+            <input type="text" id="regPhone" placeholder="e.g. +94 77 987 1122" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label class="form-label" for="regDistrict">Agricultural District / City *</label>
+            <select id="regDistrict" class="custom-select" required>
+              <option value="Nuwara Eliya">Nuwara Eliya</option>
+              <option value="Matale">Matale</option>
+              <option value="Badulla">Badulla</option>
+              <option value="Jaffna">Jaffna</option>
+              <option value="Colombo">Colombo</option>
+              <option value="Gampaha">Gampaha</option>
+              <option value="Kandy">Kandy</option>
+              <option value="Anuradhapura">Anuradhapura</option>
+              <option value="Hambantota">Hambantota</option>
+            </select>
+          </div>
+          <div class="form-group col-6">
+            <label class="form-label" for="regPassword">Create Password (min 6 chars) *</label>
+            <input type="password" id="regPassword" minlength="6" placeholder="At least 6 characters" required />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelRegBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitRegisterBtn">Complete Registration</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- MODAL 1: PLACE BID (BUYER) -->
   <div class="modal-overlay" id="bidModalOverlay">
@@ -246,36 +398,19 @@
           </div>
         </div>
 
-        <!-- Buyer Identity Selector -->
-        <div class="form-group">
-          <label for="buyerOrgSelect" class="form-label">Bidding Organization / Company *</label>
-          <select id="buyerOrgSelect" class="custom-select" required>
-            <option value="Hilton Colombo Culinary Sourcing" data-name="Chef Jerome Rodrigo">Hilton Colombo Culinary Sourcing (Chef Jerome Rodrigo)</option>
-            <option value="Keells Supermarket Central Logistics" data-name="Samantha Wickramasinghe">Keells Supermarket Central Logistics (Samantha Wickramasinghe)</option>
-            <option value="Cargills Agrifoods Processing Ltd" data-name="Dilshan Peiris">Cargills Agrifoods Processing Ltd (Dilshan Peiris)</option>
-            <option value="Shangri-La Colombo Food Services" data-name="Chef Nuwan Silva">Shangri-La Colombo Food Services (Chef Nuwan Silva)</option>
-            <option value="custom">-- Enter Custom Business / Restaurant --</option>
-          </select>
-        </div>
-
-        <!-- Custom Buyer Fields (if selected) -->
-        <div id="customBuyerFields" style="display: none;">
-          <div class="form-row">
-            <div class="form-group col-6">
-              <label for="customOrgName" class="form-label">Company Name *</label>
-              <input type="text" id="customOrgName" placeholder="e.g. Jetwing Hotels Central" />
-            </div>
-            <div class="form-group col-6">
-              <label for="customBuyerContact" class="form-label">Contact Person *</label>
-              <input type="text" id="customBuyerContact" placeholder="e.g. Ranjan Perera" />
-            </div>
+        <!-- Active Logged In Buyer Info -->
+        <div class="form-group" id="activeBidderNotice">
+          <label class="form-label">Bidding As (Signed In Business)</label>
+          <div class="signed-in-bidder-box">
+            <span id="bidderOrgDisplay">Hilton Colombo Culinary Sourcing</span>
+            <small id="bidderContactDisplay">Contact: Chef Jerome Rodrigo</small>
           </div>
         </div>
 
         <!-- Delivery Notes -->
         <div class="form-group">
           <label for="bidNotes" class="form-label">Procurement / Logistics Notes (Optional)</label>
-          <textarea id="bidNotes" rows="2" placeholder="e.g. Need morning delivery to Colombo warehouse by refrigerated truck..."></textarea>
+          <textarea id="bidNotes" rows="2" placeholder="e.g. Morning delivery required to central cold storage by 7 AM..."></textarea>
         </div>
 
         <!-- Modal Footer -->
@@ -446,9 +581,7 @@
         <!-- Bids Board -->
         <div class="bids-board-container">
           <h4>Ranked Commercial Bids (<span id="awardBidsCount">0</span>)</h4>
-          <div class="bids-list" id="awardBidsList">
-            <!-- Dynamically populated -->
-          </div>
+          <div class="bids-list" id="awardBidsList"></div>
         </div>
 
         <!-- Escrow Protection Badge -->
@@ -483,16 +616,11 @@
       </div>
 
       <div class="modal-body">
-        <!-- Quick Search Tracking -->
         <div class="order-search-box">
           <input type="text" id="orderSearchInput" placeholder="Enter Tracking Number (e.g. AGRI-EXP-77291)..." />
           <button class="btn btn-sm btn-primary" id="searchOrderBtn">Track Shipment</button>
         </div>
-
-        <!-- Orders List / Detail -->
-        <div class="orders-container" id="ordersListContainer">
-          <!-- Populated dynamically via app.js -->
-        </div>
+        <div class="orders-container" id="ordersListContainer"></div>
       </div>
     </div>
   </div>

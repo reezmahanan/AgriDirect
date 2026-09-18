@@ -19,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../client')));
 
 // Mount API Routes
+app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/lots', require('./routes/lotRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/market-prices', require('./routes/marketRoutes'));
@@ -47,8 +48,9 @@ app.listen(PORT, () => {
   console.log(`=======================================================`);
   console.log(`🌾 AgriDirect B2B Exchange Server is running!`);
   console.log(`🚀 Access Web Application : http://localhost:${PORT}`);
-  console.log(`📡 API Base Endpoint      : http://localhost:${PORT}/api/lots`);
-  console.log(`📦 Orders & Logistics API : http://localhost:${PORT}/api/orders`);
-  console.log(`📊 Wholesale Index API    : http://localhost:${PORT}/api/market-prices`);
+  console.log(`🔑 Authentication API    : http://localhost:${PORT}/api/auth`);
+  console.log(`📡 Harvest Lots API      : http://localhost:${PORT}/api/lots`);
+  console.log(`📦 Orders & Logistics    : http://localhost:${PORT}/api/orders`);
+  console.log(`📊 Wholesale Index       : http://localhost:${PORT}/api/market-prices`);
   console.log(`=======================================================`);
 });

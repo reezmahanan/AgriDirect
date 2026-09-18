@@ -18,75 +18,84 @@ const seedData = async () => {
     await Order.deleteMany({});
     console.log('[AgriDirect Seeder] Cleared old collections.');
 
+    const defaultPasswordHash = User.hashPassword('password123');
+
     // 1. Seed Users (Farmers & Commercial Buyers)
     const users = await User.insertMany([
       {
         name: 'Sunil Bandara',
         role: 'farmer',
         organization: 'Pedro Estate High Farms',
-        email: 'sunil.bandara@highlandfarms.lk',
+        email: 'sunil@farmer.lk',
         phone: '+94 77 220 1199',
         location: { district: 'Nuwara Eliya', cityOrVillage: 'Kandapola' },
+        passwordHash: defaultPasswordHash,
         rating: 4.9
       },
       {
         name: 'Kithsiri Jayasinghe',
         role: 'farmer',
         organization: 'Dambulla Valley Harvest Co.',
-        email: 'kithsiri.j@dambullaharvest.lk',
+        email: 'kithsiri@farmer.lk',
         phone: '+94 71 884 9021',
         location: { district: 'Matale', cityOrVillage: 'Dambulla' },
+        passwordHash: defaultPasswordHash,
         rating: 4.8
       },
       {
         name: 'Nagaraja Thevathas',
         role: 'farmer',
         organization: 'Northern Spice & Chilli Growers',
-        email: 'thevathas@jaffnagreen.lk',
+        email: 'thevathas@farmer.lk',
         phone: '+94 76 331 4452',
         location: { district: 'Jaffna', cityOrVillage: 'Chavakachcheri' },
+        passwordHash: defaultPasswordHash,
         rating: 4.9
       },
       {
         name: 'Dharmadasa Rajapaksha',
         role: 'farmer',
         organization: 'Badulla Highland Organics',
-        email: 'dharmadasa@badullaorganics.lk',
+        email: 'dharmadasa@farmer.lk',
         phone: '+94 72 443 8810',
         location: { district: 'Badulla', cityOrVillage: 'Welimada' },
+        passwordHash: defaultPasswordHash,
         rating: 4.7
-      },
-      {
-        name: 'Samantha Wickramasinghe',
-        role: 'buyer',
-        organization: 'Keells Supermarket Central Logistics',
-        email: 'samantha.w@keells.lk',
-        phone: '+94 11 230 3500',
-        location: { district: 'Colombo', cityOrVillage: 'Peliyagoda' },
-        rating: 5.0
       },
       {
         name: 'Chef Jerome Rodrigo',
         role: 'buyer',
         organization: 'Hilton Colombo Culinary Sourcing',
-        email: 'jerome.r@hiltoncolombo.com',
+        email: 'jerome@hilton.lk',
         phone: '+94 11 249 2492',
         location: { district: 'Colombo', cityOrVillage: 'Fort' },
+        passwordHash: defaultPasswordHash,
         rating: 4.9
+      },
+      {
+        name: 'Samantha Wickramasinghe',
+        role: 'buyer',
+        organization: 'Keells Supermarket Central Logistics',
+        email: 'samantha@keells.lk',
+        phone: '+94 11 230 3500',
+        location: { district: 'Colombo', cityOrVillage: 'Peliyagoda' },
+        passwordHash: defaultPasswordHash,
+        rating: 5.0
       },
       {
         name: 'Dilshan Peiris',
         role: 'buyer',
         organization: 'Cargills Agrifoods Processing Ltd',
-        email: 'dilshan.p@cargillsceylon.com',
+        email: 'dilshan@cargills.lk',
         phone: '+94 11 242 7777',
         location: { district: 'Gampaha', cityOrVillage: 'Ja-Ela' },
+        passwordHash: defaultPasswordHash,
         rating: 4.8
       }
     ]);
-    console.log(`[AgriDirect Seeder] Seeded ${users.length} Users.`);
+    console.log(`[AgriDirect Seeder] Seeded ${users.length} Users with login credentials (password: 'password123').`);
 
-    // 2. Seed Daily Benchmark Market Prices (Sri Lanka Wholesale Indexes)
+    // 2. Seed Daily Benchmark Market Prices
     const marketPrices = await MarketPrice.insertMany([
       {
         crop: 'Nuwara Eliya Leeks',
@@ -152,9 +161,9 @@ const seedData = async () => {
     const farmer3 = users[2];
     const farmer4 = users[3];
 
-    const buyer1 = users[4]; // Keells
-    const buyer2 = users[5]; // Hilton
-    const buyer3 = users[6]; // Cargills
+    const buyerHilton = users[4];
+    const buyerKeells = users[5];
+    const buyerCargills = users[6];
 
     // 3. Seed Harvest Lots with real-world bids
     const lots = await HarvestLot.insertMany([
@@ -165,9 +174,9 @@ const seedData = async () => {
         quantityKg: 1200,
         basePricePerKg: 260,
         currentHighestBid: 295,
-        highestBidderName: buyer2.name,
-        highestBidderOrg: buyer2.organization,
-        highestBidderId: buyer2._id,
+        highestBidderName: buyerHilton.name,
+        highestBidderOrg: buyerHilton.organization,
+        highestBidderId: buyerHilton._id,
         status: 'bidding_open',
         harvestDate: new Date(),
         biddingDeadline: new Date(Date.now() + 36 * 3600 * 1000),
@@ -183,22 +192,22 @@ const seedData = async () => {
           grade: 'Grade A Premium Export Quality',
           organicCertified: true,
           packaging: '25kg Ventilated Eco Mesh Bags',
-          description: 'Field-harvested this morning in Kandapola. Crisp white stems, trimmed roots, and zero chemical pesticide residue. Ready for cold chain dispatch.'
+          description: 'Field-harvested this morning in Kandapola. Crisp white stems, trimmed roots, and zero chemical pesticide residue.'
         },
         bids: [
           {
-            bidderId: buyer1._id,
-            bidderName: buyer1.name,
-            buyerOrganization: buyer1.organization,
+            bidderId: buyerKeells._id,
+            bidderName: buyerKeells.name,
+            buyerOrganization: buyerKeells.organization,
             offeredPricePerKg: 275,
             totalBidAmount: 275 * 1200,
             notes: 'Requires delivery to Peliyagoda central distribution by 6 AM.',
             placedAt: new Date(Date.now() - 3 * 3600 * 1000)
           },
           {
-            bidderId: buyer2._id,
-            bidderName: buyer2.name,
-            buyerOrganization: buyer2.organization,
+            bidderId: buyerHilton._id,
+            bidderName: buyerHilton.name,
+            buyerOrganization: buyerHilton.organization,
             offeredPricePerKg: 295,
             totalBidAmount: 295 * 1200,
             notes: 'For luxury hotel banqueting kitchens. Need immediate morning refrigerated pickup.',
@@ -213,9 +222,9 @@ const seedData = async () => {
         quantityKg: 3500,
         basePricePerKg: 310,
         currentHighestBid: 335,
-        highestBidderName: buyer3.name,
-        highestBidderOrg: buyer3.organization,
-        highestBidderId: buyer3._id,
+        highestBidderName: buyerCargills.name,
+        highestBidderOrg: buyerCargills.organization,
+        highestBidderId: buyerCargills._id,
         status: 'bidding_open',
         harvestDate: new Date(),
         biddingDeadline: new Date(Date.now() + 42 * 3600 * 1000),
@@ -231,22 +240,22 @@ const seedData = async () => {
           grade: 'Grade A Commercial',
           organicCertified: false,
           packaging: '50kg Jute Sacks',
-          description: 'Naturally sun-cured over 5 days for long shelf-life. Uniform 60-70mm caliber bulbs with dry outer skin. Stored in ventilated dry shed.'
+          description: 'Naturally sun-cured over 5 days for long shelf-life. Uniform 60-70mm caliber bulbs with dry outer skin.'
         },
         bids: [
           {
-            bidderId: buyer1._id,
-            bidderName: buyer1.name,
-            buyerOrganization: buyer1.organization,
+            bidderId: buyerKeells._id,
+            bidderName: buyerKeells.name,
+            buyerOrganization: buyerKeells.organization,
             offeredPricePerKg: 320,
             totalBidAmount: 320 * 3500,
             notes: 'Weekly supermarket staple replenishment.',
             placedAt: new Date(Date.now() - 5 * 3600 * 1000)
           },
           {
-            bidderId: buyer3._id,
-            bidderName: buyer3.name,
-            buyerOrganization: buyer3.organization,
+            bidderId: buyerCargills._id,
+            bidderName: buyerCargills.name,
+            buyerOrganization: buyerCargills.organization,
             offeredPricePerKg: 335,
             totalBidAmount: 335 * 3500,
             notes: 'Direct bulk acquisition for food processing and retail distribution.',
@@ -261,9 +270,9 @@ const seedData = async () => {
         quantityKg: 800,
         basePricePerKg: 620,
         currentHighestBid: 680,
-        highestBidderName: buyer1.name,
-        highestBidderOrg: buyer1.organization,
-        highestBidderId: buyer1._id,
+        highestBidderName: buyerKeells.name,
+        highestBidderOrg: buyerKeells.organization,
+        highestBidderId: buyerKeells._id,
         status: 'bidding_open',
         harvestDate: new Date(),
         biddingDeadline: new Date(Date.now() + 24 * 3600 * 1000),
@@ -279,13 +288,13 @@ const seedData = async () => {
           grade: 'Grade A First Pick',
           organicCertified: true,
           packaging: '10kg Perforated Plastic Crates',
-          description: 'Picked at peak firmness and glossy emerald dark color. Intense capsaicin aroma and long shelf stability under cold storage.'
+          description: 'Picked at peak firmness and glossy emerald dark color. Intense capsaicin aroma and long shelf stability.'
         },
         bids: [
           {
-            bidderId: buyer1._id,
-            bidderName: buyer1.name,
-            buyerOrganization: buyer1.organization,
+            bidderId: buyerKeells._id,
+            bidderName: buyerKeells.name,
+            buyerOrganization: buyerKeells.organization,
             offeredPricePerKg: 680,
             totalBidAmount: 680 * 800,
             notes: 'Full volume lock for retail supermarket chain.',
@@ -300,9 +309,9 @@ const seedData = async () => {
         quantityKg: 2000,
         basePricePerKg: 270,
         currentHighestBid: 290,
-        highestBidderName: buyer2.name,
-        highestBidderOrg: buyer2.organization,
-        highestBidderId: buyer2._id,
+        highestBidderName: buyerHilton.name,
+        highestBidderOrg: buyerHilton.organization,
+        highestBidderId: buyerHilton._id,
         status: 'bidding_open',
         harvestDate: new Date(),
         biddingDeadline: new Date(Date.now() + 40 * 3600 * 1000),
@@ -318,13 +327,13 @@ const seedData = async () => {
           grade: 'Grade A Table Quality',
           organicCertified: false,
           packaging: '40kg Reinforced Sacks',
-          description: 'Freshly dug from rich Welimada volcanic soil. Washed and dried, minimal skin damage, ideal for luxury restaurant roasting and chips.'
+          description: 'Freshly dug from rich Welimada volcanic soil. Washed and dried, minimal skin damage.'
         },
         bids: [
           {
-            bidderId: buyer2._id,
-            bidderName: buyer2.name,
-            buyerOrganization: buyer2.organization,
+            bidderId: buyerHilton._id,
+            bidderName: buyerHilton.name,
+            buyerOrganization: buyerHilton.organization,
             offeredPricePerKg: 290,
             totalBidAmount: 290 * 2000,
             notes: 'High-volume purchase for seasonal hotel menu.',
@@ -339,9 +348,9 @@ const seedData = async () => {
         quantityKg: 400,
         basePricePerKg: 2300,
         currentHighestBid: 2450,
-        highestBidderName: buyer3.name,
-        highestBidderOrg: buyer3.organization,
-        highestBidderId: buyer3._id,
+        highestBidderName: buyerCargills.name,
+        highestBidderOrg: buyerCargills.organization,
+        highestBidderId: buyerCargills._id,
         status: 'bidding_open',
         harvestDate: new Date(),
         biddingDeadline: new Date(Date.now() + 48 * 3600 * 1000),
@@ -357,13 +366,13 @@ const seedData = async () => {
           grade: 'Export Grade 550g/l Bulk Density',
           organicCertified: true,
           packaging: 'Hermetic Poly-Lined Sacks',
-          description: 'Sun-dried pure black peppercorns, moisture content under 11%, high piperine content (5.8%). Zero mold, certified pesticide free.'
+          description: 'Sun-dried pure black peppercorns, moisture content under 11%, high piperine content (5.8%).'
         },
         bids: [
           {
-            bidderId: buyer3._id,
-            bidderName: buyer3.name,
-            buyerOrganization: buyer3.organization,
+            bidderId: buyerCargills._id,
+            bidderName: buyerCargills.name,
+            buyerOrganization: buyerCargills.organization,
             offeredPricePerKg: 2450,
             totalBidAmount: 2450 * 400,
             notes: 'Export packaging required for spice processing.',
@@ -374,7 +383,7 @@ const seedData = async () => {
     ]);
     console.log(`[AgriDirect Seeder] Seeded ${lots.length} active Harvest Lots.`);
 
-    // 4. Seed an already Awarded Deal with an Order for instant demonstration
+    // 4. Seed an already Awarded Deal with an Order
     const awardedLot = new HarvestLot({
       crop: 'Kandapola Carrots',
       category: 'vegetables',
@@ -382,9 +391,9 @@ const seedData = async () => {
       quantityKg: 1500,
       basePricePerKg: 290,
       currentHighestBid: 320,
-      highestBidderName: buyer1.name,
-      highestBidderOrg: buyer1.organization,
-      highestBidderId: buyer1._id,
+      highestBidderName: buyerKeells.name,
+      highestBidderOrg: buyerKeells.organization,
+      highestBidderId: buyerKeells._id,
       status: 'awarded',
       harvestDate: new Date(Date.now() - 24 * 3600 * 1000),
       farmer: {
@@ -403,9 +412,9 @@ const seedData = async () => {
       },
       bids: [
         {
-          bidderId: buyer1._id,
-          bidderName: buyer1.name,
-          buyerOrganization: buyer1.organization,
+          bidderId: buyerKeells._id,
+          bidderName: buyerKeells.name,
+          buyerOrganization: buyerKeells.organization,
           offeredPricePerKg: 320,
           totalBidAmount: 320 * 1500,
           notes: 'Awarded by farmer Sunil Bandara. Domex ColdChain in transit.',
@@ -430,9 +439,9 @@ const seedData = async () => {
         pickupAddress: 'Pedro Estate High Farms, Kandapola, Nuwara Eliya'
       },
       buyer: {
-        name: buyer1.name,
-        organization: buyer1.organization,
-        phone: buyer1.phone,
+        name: buyerKeells.name,
+        organization: buyerKeells.organization,
+        phone: buyerKeells.phone,
         deliveryAddress: 'Keells Supermarkets Central Warehouse, Peliyagoda'
       },
       escrowStatus: 'in_transit',

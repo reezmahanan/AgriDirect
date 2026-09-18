@@ -1414,3 +1414,229 @@ input:focus, textarea:focus, select:focus {
   .footer-container { flex-direction: column; text-align: center; }
   .footer-info { text-align: center; }
 }
+
+/* AUTH & PROFILE BADGE */
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--slate-100);
+  border: 1px solid var(--slate-200);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+}
+
+.user-avatar {
+  font-size: 1.2rem;
+  background: var(--white);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--slate-200);
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.user-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+.user-org {
+  font-size: 0.7rem;
+  color: var(--slate-500);
+}
+
+.btn-logout {
+  background: transparent;
+  border: none;
+  color: var(--slate-400);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+
+.btn-logout:hover {
+  color: var(--danger);
+  background: var(--danger-light);
+}
+
+.auth-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* DEMO LOGIN STRIP */
+.demo-login-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.demo-strip-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fde68a;
+}
+
+.btn-demo-quick {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-demo-quick:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+/* AUTH MODAL TABS */
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.auth-tab-btn {
+  background: transparent;
+  border: none;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--slate-400);
+  cursor: pointer;
+  padding: 4px 8px;
+  position: relative;
+}
+
+.auth-tab-btn.active {
+  color: var(--slate-800);
+}
+
+.auth-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -17px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 3px 3px 0 0;
+}
+
+.auth-panel-heading {
+  margin-bottom: 16px;
+}
+
+.auth-panel-heading h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+.auth-panel-heading p {
+  font-size: 0.82rem;
+  color: var(--slate-500);
+}
+
+/* ROLE RADIO SELECTOR */
+.auth-role-select-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.auth-role-radio {
+  cursor: pointer;
+}
+
+.auth-role-radio input {
+  display: none;
+}
+
+.role-box {
+  border: 2px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+  background: var(--slate-50);
+}
+
+.role-box .r-icon {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.role-box strong {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--slate-800);
+}
+
+.role-box small {
+  font-size: 0.72rem;
+  color: var(--slate-500);
+}
+
+.auth-role-radio input:checked + .role-box {
+  border-color: var(--primary);
+  background: #ecfdf5;
+}
+
+.auth-role-radio input:checked + .role-box strong {
+  color: var(--primary);
+}
+
+.demo-credentials-box {
+  background: #f8fafc;
+  border: 1px dashed var(--slate-300);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+  color: var(--slate-600);
+}
+
+.signed-in-bidder-box {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.signed-in-bidder-box span {
+  font-weight: 700;
+  color: #065f46;
+  font-size: 0.92rem;
+}
+
+.signed-in-bidder-box small {
+  color: #047857;
+  font-size: 0.78rem;
+}

@@ -1,5 +1,6 @@
 // AgriDirect B2B Exchange Client Application
 let currentRole = 'buyer'; // 'buyer' or 'farmer'
+let currentUser = null;    // Logged in user object
 let lotsData = [];
 let marketPricesData = [];
 let ordersData = [];
@@ -30,13 +31,23 @@ const kpiTotalBids = document.getElementById('kpiTotalBids');
 const kpiTransacted = document.getElementById('kpiTransacted');
 
 // Modals
+const authModalOverlay = document.getElementById('authModalOverlay');
 const bidModalOverlay = document.getElementById('bidModalOverlay');
 const postLotModalOverlay = document.getElementById('postLotModalOverlay');
 const awardModalOverlay = document.getElementById('awardModalOverlay');
 const ordersModalOverlay = document.getElementById('ordersModalOverlay');
 
+// Auth elements
+const userProfileBadge = document.getElementById('userProfileBadge');
+const authButtons = document.getElementById('authButtons');
+const userAvatar = document.getElementById('userAvatar');
+const userNameText = document.getElementById('userNameText');
+const userOrgText = document.getElementById('userOrgText');
+const logoutBtn = document.getElementById('logoutBtn');
+
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
+  initAuthSession();
   initEventHandlers();
   loadMarketPrices();
   loadDashboardStats();
@@ -44,15 +55,105 @@ document.addEventListener('DOMContentLoaded', () => {
   loadOrders();
 });
 
+// Restore saved user session if exists
+function initAuthSession() {
+  const saved = localStorage.getItem('agridirect_user');
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      renderUserAuthUI();
+    } catch (e) {
+      localStorage.removeItem('agridirect_user');
+    }
+  }
+}
+
+// Update Topbar UI based on Auth state
+function renderUserAuthUI() {
+  if (currentUser) {
+    authButtons.style.display = 'none';
+    userProfileBadge.style.display = 'flex';
+    userAvatar.textContent = currentUser.role === 'farmer' ? '👨‍🌾' : '🏢';
+    userNameText.textContent = currentUser.name;
+    userOrgText.textContent = `${currentUser.organization} • ${currentUser.role.toUpperCase()}`;
+
+    // Auto-switch portal to matching role
+    if (currentUser.role !== currentRole) {
+      switchRole(currentUser.role);
+    }
+  } else {
+    authButtons.style.display = 'flex';
+    userProfileBadge.style.display = 'none';
+  }
+}
+
 // Event Handlers
 function initEventHandlers() {
   // Role Switcher
   roleBuyerBtn.addEventListener('click', () => switchRole('buyer'));
   roleFarmerBtn.addEventListener('click', () => switchRole('farmer'));
 
+  // Auth Modals
+  document.getElementById('openLoginBtn').addEventListener('click', () => {
+    switchAuthTab('login');
+    openModal(authModalOverlay);
+  });
+  document.getElementById('openRegisterBtn').addEventListener('click', () => {
+    switchAuthTab('register');
+    openModal(authModalOverlay);
+  });
+  document.getElementById('closeAuthModal').addEventListener('click', () => closeModal(authModalOverlay));
+  document.getElementById('cancelLoginBtn').addEventListener('click', () => closeModal(authModalOverlay));
+  document.getElementById('cancelRegBtn').addEventListener('click', () => closeModal(authModalOverlay));
+
+  document.getElementById('tabLoginBtn').addEventListener('click', () => switchAuthTab('login'));
+  document.getElementById('tabRegisterBtn').addEventListener('click', () => switchAuthTab('register'));
+
+  // Registration role change label
+  document.querySelectorAll('input[name="regRole"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const orgLabel = document.getElementById('regOrgLabel');
+      const orgInput = document.getElementById('regOrg');
+      if (e.target.value === 'farmer') {
+        orgLabel.textContent = 'Farm / Estate Name *';
+        orgInput.placeholder = 'e.g. Horton Valley Organics';
+      } else {
+        orgLabel.textContent = 'Business / Organization Name *';
+        orgInput.placeholder = 'e.g. Shangri-La Procurement / Keells Supermarket';
+      }
+    });
+  });
+
+  // Auth Forms Submit
+  document.getElementById('loginForm').addEventListener('submit', handleLogin);
+  document.getElementById('registerForm').addEventListener('submit', handleRegister);
+
+  // Logout
+  logoutBtn.addEventListener('click', () => {
+    currentUser = null;
+    localStorage.removeItem('agridirect_user');
+    renderUserAuthUI();
+    showToast('Signed out successfully.');
+    filterAndRenderLots();
+  });
+
+  // 1-Click Quick Demo Login Buttons in Hero
+  document.querySelectorAll('.btn-demo-quick').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const email = btn.dataset.email;
+      await performQuickLogin(email, 'password123');
+    });
+  });
+
   // Farmer listing buttons
-  farmerPostBtn.addEventListener('click', () => openModal(postLotModalOverlay));
-  document.getElementById('calloutListBtn')?.addEventListener('click', () => openModal(postLotModalOverlay));
+  farmerPostBtn.addEventListener('click', () => {
+    prefillFarmerLotForm();
+    openModal(postLotModalOverlay);
+  });
+  document.getElementById('calloutListBtn')?.addEventListener('click', () => {
+    prefillFarmerLotForm();
+    openModal(postLotModalOverlay);
+  });
 
   // Orders button
   document.getElementById('viewOrdersBtn').addEventListener('click', () => {
@@ -77,7 +178,7 @@ function initEventHandlers() {
   document.getElementById('closeOrdersModal').addEventListener('click', () => closeModal(ordersModalOverlay));
 
   // Close when clicking overlay backdrop
-  [bidModalOverlay, postLotModalOverlay, awardModalOverlay, ordersModalOverlay].forEach(overlay => {
+  [authModalOverlay, bidModalOverlay, postLotModalOverlay, awardModalOverlay, ordersModalOverlay].forEach(overlay => {
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) closeModal(overlay);
     });
@@ -112,13 +213,6 @@ function initEventHandlers() {
 
   document.getElementById('bidOfferInput').addEventListener('input', updateContractCalc);
 
-  // Buyer Org custom toggle
-  const buyerOrgSelect = document.getElementById('buyerOrgSelect');
-  buyerOrgSelect.addEventListener('change', () => {
-    const customFields = document.getElementById('customBuyerFields');
-    customFields.style.display = buyerOrgSelect.value === 'custom' ? 'block' : 'none';
-  });
-
   // Submit Bid Form
   document.getElementById('placeBidForm').addEventListener('submit', handlePlaceBid);
 
@@ -130,6 +224,124 @@ function initEventHandlers() {
 
   // Track Single Order Button in Modal
   document.getElementById('searchOrderBtn').addEventListener('click', handleSearchOrder);
+}
+
+// Switch Auth Modal Tabs
+function switchAuthTab(tab) {
+  const loginTab = document.getElementById('tabLoginBtn');
+  const regTab = document.getElementById('tabRegisterBtn');
+  const loginForm = document.getElementById('loginForm');
+  const regForm = document.getElementById('registerForm');
+
+  if (tab === 'login') {
+    loginTab.classList.add('active');
+    regTab.classList.remove('active');
+    loginForm.style.display = 'block';
+    regForm.style.display = 'none';
+  } else {
+    regTab.classList.add('active');
+    loginTab.classList.remove('active');
+    loginForm.style.display = 'none';
+    regForm.style.display = 'block';
+  }
+}
+
+// Perform Login API Call
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const submitBtn = document.getElementById('submitLoginBtn');
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Signing in...';
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const json = await res.json();
+    if (res.ok && json.success) {
+      currentUser = json.data;
+      localStorage.setItem('agridirect_user', JSON.stringify(currentUser));
+      renderUserAuthUI();
+      closeModal(authModalOverlay);
+      showToast(json.message);
+      filterAndRenderLots();
+    } else {
+      showToast(json.error || 'Invalid credentials', 'error');
+    }
+  } catch (err) {
+    showToast('Failed to sign in. Server offline?', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sign In to Exchange';
+  }
+}
+
+// Perform Registration API Call
+async function handleRegister(e) {
+  e.preventDefault();
+  const role = document.querySelector('input[name="regRole"]:checked').value;
+  const name = document.getElementById('regName').value.trim();
+  const organization = document.getElementById('regOrg').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const district = document.getElementById('regDistrict').value;
+  const password = document.getElementById('regPassword').value;
+
+  const submitBtn = document.getElementById('submitRegisterBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Creating Account...';
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, role, organization, email, phone, district, password })
+    });
+
+    const json = await res.json();
+    if (res.ok && json.success) {
+      currentUser = json.data;
+      localStorage.setItem('agridirect_user', JSON.stringify(currentUser));
+      renderUserAuthUI();
+      closeModal(authModalOverlay);
+      showToast(json.message);
+      filterAndRenderLots();
+    } else {
+      showToast(json.error || (json.errors ? json.errors.join(', ') : 'Registration failed'), 'error');
+    }
+  } catch (err) {
+    showToast('Registration error. Please retry.', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Complete Registration';
+  }
+}
+
+// Quick Demo Login (for presentations)
+async function performQuickLogin(email, password) {
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const json = await res.json();
+    if (res.ok && json.success) {
+      currentUser = json.data;
+      localStorage.setItem('agridirect_user', JSON.stringify(currentUser));
+      renderUserAuthUI();
+      showToast(`Quick Logged In as ${currentUser.name} (${currentUser.organization})!`);
+      filterAndRenderLots();
+    }
+  } catch (err) {
+    showToast('Quick login failed', 'error');
+  }
 }
 
 // Switch Role
@@ -210,7 +422,6 @@ function renderTicker(prices) {
     </span>`;
   }).join('&nbsp;&nbsp;•&nbsp;&nbsp;');
 
-  // Repeat for continuous marquee
   tickerTrack.innerHTML = `${itemsHtml}&nbsp;&nbsp;•&nbsp;&nbsp;${itemsHtml}`;
 }
 
@@ -283,7 +494,6 @@ function filterAndRenderLots() {
   } else if (sortVal === 'priceLow') {
     filtered.sort((a, b) => a.basePricePerKg - b.basePricePerKg);
   } else {
-    // Newest
     filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }
 
@@ -298,8 +508,6 @@ function filterAndRenderLots() {
   }
 
   lotsGrid.innerHTML = filtered.map(lot => renderLotCard(lot)).join('');
-
-  // Attach card button listeners
   attachCardEvents();
 }
 
@@ -316,7 +524,6 @@ function renderLotCard(lot) {
   const leaderOrg = lot.highestBidderOrg || 'No commercial bids yet';
   const bidsCount = lot.bids ? lot.bids.length : 0;
 
-  // Action button depending on role & status
   let actionButton = '';
   if (isOpen) {
     if (currentRole === 'buyer') {
@@ -410,6 +617,13 @@ function attachCardEvents() {
 // Open Place Bid Modal
 let activeBidLot = null;
 function openBidModal(lotId) {
+  if (!currentUser) {
+    showToast('Please sign in or select a demo profile to place commercial bids.', 'error');
+    switchAuthTab('login');
+    openModal(authModalOverlay);
+    return;
+  }
+
   const lot = lotsData.find(l => l._id === lotId);
   if (!lot) return;
   activeBidLot = lot;
@@ -427,8 +641,11 @@ function openBidModal(lotId) {
 
   const bidOfferInput = document.getElementById('bidOfferInput');
   bidOfferInput.min = minNext;
-  bidOfferInput.value = minNext + 5; // Default suggestion +5
+  bidOfferInput.value = minNext + 5;
   updateContractCalc();
+
+  document.getElementById('bidderOrgDisplay').textContent = currentUser.organization;
+  document.getElementById('bidderContactDisplay').textContent = `Representative: ${currentUser.name} (${currentUser.phone})`;
 
   openModal(bidModalOverlay);
 }
@@ -444,21 +661,13 @@ function updateContractCalc() {
 // Submit Bid
 async function handlePlaceBid(e) {
   e.preventDefault();
-  const lotId = document.getElementById('bidLotId').value;
-  const offer = Number(document.getElementById('bidOfferInput').value);
-  const orgSelect = document.getElementById('buyerOrgSelect');
-  let orgName = orgSelect.value;
-  let contactName = orgSelect.options[orgSelect.selectedIndex]?.dataset.name || 'Commercial Buyer';
-
-  if (orgName === 'custom') {
-    orgName = document.getElementById('customOrgName').value.trim();
-    contactName = document.getElementById('customBuyerContact').value.trim();
-    if (!orgName || !contactName) {
-      alert('Please provide your business name and contact name.');
-      return;
-    }
+  if (!currentUser) {
+    showToast('Please sign in to submit a bid', 'error');
+    return;
   }
 
+  const lotId = document.getElementById('bidLotId').value;
+  const offer = Number(document.getElementById('bidOfferInput').value);
   const notes = document.getElementById('bidNotes').value.trim();
 
   const submitBtn = document.getElementById('submitBidBtn');
@@ -471,8 +680,9 @@ async function handlePlaceBid(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         offeredPricePerKg: offer,
-        bidderName: contactName,
-        buyerOrganization: orgName,
+        bidderName: currentUser.name,
+        buyerOrganization: currentUser.organization,
+        bidderId: currentUser._id,
         notes
       })
     });
@@ -491,6 +701,21 @@ async function handlePlaceBid(e) {
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Confirm & Place Official Bid';
+  }
+}
+
+// Pre-fill Farmer form with logged-in farmer details
+function prefillFarmerLotForm() {
+  if (currentUser && currentUser.role === 'farmer') {
+    document.getElementById('farmerName').value = currentUser.name;
+    document.getElementById('farmerEstate').value = currentUser.organization;
+    document.getElementById('farmerPhone').value = currentUser.phone;
+    if (currentUser.location && currentUser.location.district) {
+      document.getElementById('farmerDistrict').value = currentUser.location.district;
+    }
+    if (currentUser.location && currentUser.location.cityOrVillage) {
+      document.getElementById('farmerVillage').value = currentUser.location.cityOrVillage;
+    }
   }
 }
 
@@ -528,7 +753,14 @@ async function handlePostLot(e) {
         variety,
         quantityKg,
         basePricePerKg,
-        farmer: { name: farmerName, farmName, phone, district, village },
+        farmer: {
+          farmerId: currentUser ? currentUser._id : null,
+          name: farmerName,
+          farmName,
+          phone,
+          district,
+          village
+        },
         specifications: { grade, packaging, organicCertified, description }
       })
     });
@@ -658,7 +890,6 @@ function renderOrdersList(orders) {
   }
 
   container.innerHTML = orders.map(ord => {
-    // Stepper state
     const statuses = ['confirmed', 'dispatched', 'in_transit', 'delivered'];
     const currentIdx = statuses.indexOf(ord.status);
 
@@ -674,7 +905,6 @@ function renderOrdersList(orders) {
           </div>
         </div>
 
-        <!-- 4-Step Shipment Progress -->
         <div class="shipment-stepper">
           <div class="step-item ${currentIdx >= 0 ? 'completed' : ''} ${currentIdx === 0 ? 'current' : ''}">
             <div class="step-node">1</div>
@@ -730,7 +960,6 @@ function renderOrdersList(orders) {
     `;
   }).join('');
 
-  // Attach status transition listeners
   document.querySelectorAll('.btn-step-status').forEach(btn => {
     btn.addEventListener('click', async () => {
       const orderId = btn.dataset.id;
