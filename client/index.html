@@ -88,9 +88,10 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           List Harvest Lot
         </button>
-        <button id="viewOrdersBtn" class="btn btn-outline">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-          Exchange Orders (<span id="ordersCountBadge">1</span>)
+        <button id="viewOrdersBtn" class="btn btn-outline nav-orders-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span>Exchange Orders</span>
+          <span class="nav-count-badge" id="ordersCountBadge">1</span>
         </button>
       </div>
     </div>
@@ -105,30 +106,6 @@
         <p id="heroSubtitle">
           Eliminate broker exploitation. Commercial kitchens, supermarkets, and food processors bid directly on freshly harvested farm lots across Sri Lanka with transparent price discovery and cold-chain escrow delivery.
         </p>
-      </div>
-
-      <!-- Quick Demo Account Bar (Viva / Presentation Shortcut) -->
-      <div class="demo-login-strip">
-        <span class="demo-strip-label">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Quick Demo Accounts:
-        </span>
-        <button class="btn-demo-quick" data-email="sunil@farmer.lk" data-role="farmer">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-          Sunil Bandara (Nuwara Eliya)
-        </button>
-        <button class="btn-demo-quick" data-email="kithsiri@farmer.lk" data-role="farmer">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-          Kithsiri (Dambulla)
-        </button>
-        <button class="btn-demo-quick" data-email="jerome@hilton.lk" data-role="buyer">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/></svg>
-          Chef Jerome (Hilton Colombo)
-        </button>
-        <button class="btn-demo-quick" data-email="samantha@keells.lk" data-role="buyer">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/></svg>
-          Samantha (Keells Logistics)
-        </button>
       </div>
 
       <!-- Exchange KPI Cards -->
@@ -690,7 +667,6 @@
         </div>
       </div>
       <div class="footer-info">
-        <p>Connected to <strong>Local MongoDB</strong>: <code>agridirect_db</code> | Express REST API on Port 5050</p>
         <p>&copy; 2026 AgriDirect Farm-to-Business Daily Harvest Exchange.</p>
       </div>
     </div>

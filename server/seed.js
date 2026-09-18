@@ -171,7 +171,7 @@ const seedData = async () => {
         crop: 'Nuwara Eliya Leeks',
         category: 'vegetables',
         variety: 'Ambewela Long Crisp',
-        imageUrl: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=600&auto=format&fit=crop&q=80',
+        imageUrl: '/images/leeks.jpg',
         quantityKg: 1200,
         basePricePerKg: 260,
         currentHighestBid: 295,
@@ -220,7 +220,7 @@ const seedData = async () => {
         crop: 'Dambulla Big Onions',
         category: 'vegetables',
         variety: 'Dry Cured Golden Globe',
-        imageUrl: 'https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?w=600&auto=format&fit=crop&q=80',
+        imageUrl: '/images/onions.jpg',
         quantityKg: 3500,
         basePricePerKg: 310,
         currentHighestBid: 335,
@@ -269,7 +269,7 @@ const seedData = async () => {
         crop: 'Jaffna Green Chillies',
         category: 'spices',
         variety: 'MI-2 High Heat Pungent',
-        imageUrl: 'https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?w=600&auto=format&fit=crop&q=80',
+        imageUrl: '/images/chillies.jpg',
         quantityKg: 800,
         basePricePerKg: 620,
         currentHighestBid: 680,
@@ -309,7 +309,7 @@ const seedData = async () => {
         crop: 'Welimada Red Potatoes',
         category: 'tubers',
         variety: 'Granola High Starch',
-        imageUrl: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop&q=80',
+        imageUrl: '/images/potatoes.jpg',
         quantityKg: 2000,
         basePricePerKg: 270,
         currentHighestBid: 290,
@@ -349,7 +349,7 @@ const seedData = async () => {
         crop: 'Matale Grade-1 Black Pepper',
         category: 'spices',
         variety: 'Panniyur Heavy Berry',
-        imageUrl: 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=600&auto=format&fit=crop&q=80',
+        imageUrl: '/images/pepper.jpg',
         quantityKg: 400,
         basePricePerKg: 2300,
         currentHighestBid: 2450,
@@ -384,6 +384,95 @@ const seedData = async () => {
             placedAt: new Date(Date.now() - 2 * 3600 * 1000)
           }
         ]
+      },
+      {
+        crop: 'Embilipitiya Cavendish Bananas',
+        category: 'fruits',
+        variety: 'Grande Naine Commercial Export',
+        imageUrl: '/images/bananas.jpg',
+        quantityKg: 2500,
+        basePricePerKg: 180,
+        currentHighestBid: 205,
+        highestBidderName: buyerHilton.name,
+        highestBidderOrg: buyerHilton.organization,
+        highestBidderId: buyerHilton._id,
+        status: 'bidding_open',
+        harvestDate: new Date(),
+        biddingDeadline: new Date(Date.now() + 36 * 3600 * 1000),
+        farmer: {
+          farmerId: farmer3._id,
+          name: farmer3.name,
+          farmName: farmer3.organization,
+          district: 'Hambantota',
+          village: 'Embilipitiya',
+          phone: farmer3.phone
+        },
+        specifications: {
+          grade: 'Grade A Export Hands',
+          organicCertified: true,
+          packaging: '20kg Ventilated Corrugated Cartons',
+          description: 'Uniform 7-8 inch fingers harvested at mature green stage with high brix ripening potential.'
+        },
+        bids: [
+          {
+            bidderId: buyerKeells._id,
+            bidderName: buyerKeells.name,
+            buyerOrganization: buyerKeells.organization,
+            offeredPricePerKg: 195,
+            totalBidAmount: 195 * 2500,
+            notes: 'Weekly fresh fruit section replenishment for retail supermarket outlets.',
+            placedAt: new Date(Date.now() - 3 * 3600 * 1000)
+          },
+          {
+            bidderId: buyerHilton._id,
+            bidderName: buyerHilton.name,
+            buyerOrganization: buyerHilton.organization,
+            offeredPricePerKg: 205,
+            totalBidAmount: 205 * 2500,
+            notes: 'Breakfast buffet and banquet hospitality fresh fruit allocation.',
+            placedAt: new Date(Date.now() - 1 * 3600 * 1000)
+          }
+        ]
+      },
+      {
+        crop: 'Dambulla Red Lady Papaya',
+        category: 'fruits',
+        variety: 'F1 Red Flesh Sweet',
+        imageUrl: '/images/papaya.jpg',
+        quantityKg: 1600,
+        basePricePerKg: 150,
+        currentHighestBid: 170,
+        highestBidderName: buyerCargills.name,
+        highestBidderOrg: buyerCargills.organization,
+        highestBidderId: buyerCargills._id,
+        status: 'bidding_open',
+        harvestDate: new Date(),
+        biddingDeadline: new Date(Date.now() + 48 * 3600 * 1000),
+        farmer: {
+          farmerId: farmer2._id,
+          name: farmer2.name,
+          farmName: farmer2.organization,
+          district: farmer2.location.district,
+          village: farmer2.location.cityOrVillage,
+          phone: farmer2.phone
+        },
+        specifications: {
+          grade: 'Grade A Premium Fruit',
+          organicCertified: true,
+          packaging: 'Foam Net Sleeves in 15kg Crates',
+          description: 'Deep red succulent sweet flesh, average weight 1.2-1.5kg, picked with 25% color break for optimal cold-chain transit.'
+        },
+        bids: [
+          {
+            bidderId: buyerCargills._id,
+            bidderName: buyerCargills.name,
+            buyerOrganization: buyerCargills.organization,
+            offeredPricePerKg: 170,
+            totalBidAmount: 170 * 1600,
+            notes: 'Direct supermarket fresh counter procurement.',
+            placedAt: new Date(Date.now() - 2 * 3600 * 1000)
+          }
+        ]
       }
     ]);
     console.log(`[AgriDirect Seeder] Seeded ${lots.length} active Harvest Lots.`);
@@ -393,7 +482,7 @@ const seedData = async () => {
       crop: 'Kandapola Carrots',
       category: 'vegetables',
       variety: 'Nantes Sweet Tender',
-      imageUrl: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?w=600&auto=format&fit=crop&q=80',
+      imageUrl: '/images/carrots.jpg',
       quantityKg: 1500,
       basePricePerKg: 290,
       currentHighestBid: 320,
