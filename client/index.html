@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgriDirect | Farm-to-Business Daily Harvest Bidding Exchange</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Top Announcement / Benchmark Bar -->
+  <div class="top-ticker-bar">
+    <div class="ticker-label">
+      <span class="pulse-dot"></span> DAILY WHOLESALE BENCHMARK (DAMBULLA & MANNING MARKET)
+    </div>
+    <div class="ticker-wrapper">
+      <div class="ticker-track" id="tickerTrack">
+        <span class="ticker-item">Loading Sri Lankan wholesale price indexes...</span>
+      </div>
+    </div>
+    <div class="ticker-actions">
+      <button id="trackOrderNavBtn" class="btn-ticker">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+        Track Logistics
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="brand-icon">🌾</div>
+        <div class="brand-text">
+          <h1>AgriDirect</h1>
+          <span class="brand-tag">B2B Harvest Exchange</span>
+        </div>
+      </div>
+
+      <!-- Portal / Role Switcher -->
+      <div class="role-switcher-container">
+        <span class="switcher-label">Current Portal:</span>
+        <div class="role-pill-group">
+          <button id="roleBuyerBtn" class="role-pill active" data-role="buyer">
+            <span class="role-emoji">🛍️</span> Commercial Buyer
+          </button>
+          <button id="roleFarmerBtn" class="role-pill" data-role="farmer">
+            <span class="role-emoji">🚜</span> Farmer Hub
+          </button>
+        </div>
+      </div>
+
+      <!-- Header Quick Actions -->
+      <div class="nav-actions">
+        <button id="farmerPostBtn" class="btn btn-primary btn-post-lot" style="display: none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          List Harvest Lot
+        </button>
+        <button id="viewOrdersBtn" class="btn btn-outline">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          Exchange Orders (<span id="ordersCountBadge">1</span>)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero & KPI Stats Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-text-block">
+        <div class="badge-tag" id="modeTag">BUYER PROCUREMENT MODE</div>
+        <h2 id="heroHeadline">Direct Farm Gate Bidding & Daily Wholesale Procurement</h2>
+        <p id="heroSubtitle">
+          Eliminate broker exploitation. Commercial kitchens, supermarkets, and food processors bid directly on freshly harvested farm lots across Sri Lanka with transparent price discovery and cold-chain escrow delivery.
+        </p>
+      </div>
+
+      <!-- Exchange KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          </div>
+          <div class="kpi-details">
+            <span class="kpi-val" id="kpiActiveLots">--</span>
+            <span class="kpi-title">Active Bidding Lots</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 7.65l.77.78L12 20.66l7.65-7.65.77-.78a5.4 5.4 0 0 0 0-7.65z"></path></svg>
+          </div>
+          <div class="kpi-details">
+            <span class="kpi-val" id="kpiProduceKg">--</span>
+            <span class="kpi-title">Daily Available (Kg)</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          </div>
+          <div class="kpi-details">
+            <span class="kpi-val" id="kpiTotalBids">--</span>
+            <span class="kpi-title">Commercial Bids Logged</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-emerald">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <div class="kpi-details">
+            <span class="kpi-val" id="kpiTransacted">--</span>
+            <span class="kpi-title">Transacted via Escrow</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marketplace Filters & Search -->
+  <main class="main-container">
+    <div class="filter-panel">
+      <!-- Search -->
+      <div class="search-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="searchInput" placeholder="Search crop, variety, farmer or district (e.g. Leeks, Nuwara Eliya, Onions)..." />
+      </div>
+
+      <!-- Categories Pills -->
+      <div class="category-tabs">
+        <button class="cat-tab active" data-category="all">All Crops</button>
+        <button class="cat-tab" data-category="vegetables">🥦 Vegetables</button>
+        <button class="cat-tab" data-category="fruits">🍌 Fruits</button>
+        <button class="cat-tab" data-category="spices">🌶️ Spices</button>
+        <button class="cat-tab" data-category="tubers">🥔 Tubers</button>
+      </div>
+
+      <!-- Status & Sort Filters -->
+      <div class="filter-controls">
+        <div class="control-group">
+          <label for="statusFilter">Status:</label>
+          <select id="statusFilter" class="custom-select">
+            <option value="all">All Lots</option>
+            <option value="bidding_open" selected>🟢 Bidding Open</option>
+            <option value="awarded">🏆 Awarded Deals</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="sortFilter">Sort By:</label>
+          <select id="sortFilter" class="custom-select">
+            <option value="newest">Newest Harvest</option>
+            <option value="highestBid">Highest Bid</option>
+            <option value="quantity">Largest Volume (kg)</option>
+            <option value="priceLow">Base Price (Low to High)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Lots Grid Header -->
+    <div class="lots-header">
+      <div class="lots-title-block">
+        <h3 id="marketplaceTitle">Live Harvest Exchange Lots</h3>
+        <span class="lots-count" id="lotsCountText">Showing 5 lots</span>
+      </div>
+      <div class="farmer-callout" id="farmerCallout" style="display: none;">
+        <span>👨‍🌾 You are viewing in <strong>Farmer Mode</strong>. You can list new produce or award incoming bids to seal contracts.</span>
+        <button class="btn btn-sm btn-primary" id="calloutListBtn">➕ Post Harvest</button>
+      </div>
+    </div>
+
+    <!-- Harvest Lots Card Grid -->
+    <div class="lots-grid" id="lotsGrid">
+      <!-- Dynamically generated via app.js -->
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading active exchange lots from MongoDB...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL 1: PLACE BID (BUYER) -->
+  <div class="modal-overlay" id="bidModalOverlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-tag">OFFICIAL BID SUBMISSION</span>
+          <h3 id="bidModalCropName">Nuwara Eliya Leeks</h3>
+          <p id="bidModalLotSub">Variety: Ambewela Long Crisp | Total Lot: 1,200 kg</p>
+        </div>
+        <button class="modal-close-btn" id="closeBidModal">&times;</button>
+      </div>
+
+      <form id="placeBidForm" class="modal-body">
+        <input type="hidden" id="bidLotId" />
+
+        <!-- Pricing Summary Box -->
+        <div class="bid-summary-box">
+          <div class="summary-item">
+            <span class="summary-lbl">Base Reserve Price</span>
+            <strong id="bidModalBasePrice">Rs. 260 / kg</strong>
+          </div>
+          <div class="summary-item highlight">
+            <span class="summary-lbl">Current Highest Bid</span>
+            <strong id="bidModalCurrentHighest">Rs. 295 / kg</strong>
+          </div>
+          <div class="summary-item">
+            <span class="summary-lbl">Minimum Next Bid</span>
+            <strong id="bidModalMinNext">Rs. 296 / kg</strong>
+          </div>
+        </div>
+
+        <!-- Quick Bid Increment Buttons -->
+        <div class="form-group">
+          <label class="form-label">Quick Bid Increments (+ over current highest)</label>
+          <div class="quick-increment-row">
+            <button type="button" class="btn-increment" data-inc="5">+ Rs. 5 / kg</button>
+            <button type="button" class="btn-increment" data-inc="10">+ Rs. 10 / kg</button>
+            <button type="button" class="btn-increment" data-inc="25">+ Rs. 25 / kg</button>
+            <button type="button" class="btn-increment" data-inc="50">+ Rs. 50 / kg</button>
+          </div>
+        </div>
+
+        <!-- Bid Input -->
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="bidOfferInput" class="form-label">Your Bid Price per Kg (LKR) *</label>
+            <div class="input-prefix-wrap">
+              <span class="prefix">Rs.</span>
+              <input type="number" id="bidOfferInput" min="1" step="1" required />
+            </div>
+          </div>
+          <div class="form-group col-6">
+            <label class="form-label">Estimated Total Contract</label>
+            <div class="contract-calc-box">
+              <span id="bidTotalContractCalc">Rs. 0</span>
+              <small id="bidLotWeightSummary">(@ 0 kg)</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buyer Identity Selector -->
+        <div class="form-group">
+          <label for="buyerOrgSelect" class="form-label">Bidding Organization / Company *</label>
+          <select id="buyerOrgSelect" class="custom-select" required>
+            <option value="Hilton Colombo Culinary Sourcing" data-name="Chef Jerome Rodrigo">Hilton Colombo Culinary Sourcing (Chef Jerome Rodrigo)</option>
+            <option value="Keells Supermarket Central Logistics" data-name="Samantha Wickramasinghe">Keells Supermarket Central Logistics (Samantha Wickramasinghe)</option>
+            <option value="Cargills Agrifoods Processing Ltd" data-name="Dilshan Peiris">Cargills Agrifoods Processing Ltd (Dilshan Peiris)</option>
+            <option value="Shangri-La Colombo Food Services" data-name="Chef Nuwan Silva">Shangri-La Colombo Food Services (Chef Nuwan Silva)</option>
+            <option value="custom">-- Enter Custom Business / Restaurant --</option>
+          </select>
+        </div>
+
+        <!-- Custom Buyer Fields (if selected) -->
+        <div id="customBuyerFields" style="display: none;">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="customOrgName" class="form-label">Company Name *</label>
+              <input type="text" id="customOrgName" placeholder="e.g. Jetwing Hotels Central" />
+            </div>
+            <div class="form-group col-6">
+              <label for="customBuyerContact" class="form-label">Contact Person *</label>
+              <input type="text" id="customBuyerContact" placeholder="e.g. Ranjan Perera" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Delivery Notes -->
+        <div class="form-group">
+          <label for="bidNotes" class="form-label">Procurement / Logistics Notes (Optional)</label>
+          <textarea id="bidNotes" rows="2" placeholder="e.g. Need morning delivery to Colombo warehouse by refrigerated truck..."></textarea>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelBidBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitBidBtn">
+            Confirm & Place Official Bid
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: POST HARVEST LOT (FARMER) -->
+  <div class="modal-overlay" id="postLotModalOverlay">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-tag bg-green-tag">FARMER PRODUCE LISTING</span>
+          <h3>Post New Harvest Lot to Exchange</h3>
+          <p>List your daily morning harvest directly to verified hotels, supermarkets, and food processors.</p>
+        </div>
+        <button class="modal-close-btn" id="closePostLotModal">&times;</button>
+      </div>
+
+      <form id="postLotForm" class="modal-body">
+        <div class="form-section-title">🌾 1. Harvest & Crop Specifications</div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="lotCrop" class="form-label">Crop Name *</label>
+            <input type="text" id="lotCrop" placeholder="e.g. Nuwara Eliya Cabbage" required />
+          </div>
+          <div class="form-group col-6">
+            <label for="lotCategory" class="form-label">Produce Category *</label>
+            <select id="lotCategory" class="custom-select" required>
+              <option value="vegetables">Vegetables</option>
+              <option value="fruits">Fruits</option>
+              <option value="spices">Spices</option>
+              <option value="tubers">Tubers</option>
+              <option value="grains">Grains</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-4">
+            <label for="lotVariety" class="form-label">Cultivar / Variety</label>
+            <input type="text" id="lotVariety" placeholder="e.g. Green Coronet" />
+          </div>
+          <div class="form-group col-4">
+            <label for="lotQuantity" class="form-label">Total Quantity (Kg) *</label>
+            <input type="number" id="lotQuantity" min="1" step="1" placeholder="e.g. 1500" required />
+          </div>
+          <div class="form-group col-4">
+            <label for="lotBasePrice" class="form-label">Base Reserve Price (LKR / kg) *</label>
+            <div class="input-prefix-wrap">
+              <span class="prefix">Rs.</span>
+              <input type="number" id="lotBasePrice" min="1" step="1" placeholder="e.g. 210" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section-title">📍 2. Farm Location & Producer Identity</div>
+        <div class="form-row">
+          <div class="form-group col-4">
+            <label for="farmerName" class="form-label">Farmer Full Name *</label>
+            <input type="text" id="farmerName" placeholder="e.g. Sarath Kumara" required />
+          </div>
+          <div class="form-group col-4">
+            <label for="farmerEstate" class="form-label">Farm / Estate Name *</label>
+            <input type="text" id="farmerEstate" placeholder="e.g. Mountain Mist Organic Farm" required />
+          </div>
+          <div class="form-group col-4">
+            <label for="farmerPhone" class="form-label">Contact Phone *</label>
+            <input type="text" id="farmerPhone" placeholder="e.g. +94 77 555 4321" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="farmerDistrict" class="form-label">Agricultural District *</label>
+            <select id="farmerDistrict" class="custom-select" required>
+              <option value="Nuwara Eliya">Nuwara Eliya</option>
+              <option value="Matale">Matale</option>
+              <option value="Badulla">Badulla</option>
+              <option value="Jaffna">Jaffna</option>
+              <option value="Anuradhapura">Anuradhapura</option>
+              <option value="Kandy">Kandy</option>
+              <option value="Hambantota">Hambantota</option>
+              <option value="Kurunegala">Kurunegala</option>
+              <option value="Monaragala">Monaragala</option>
+              <option value="Puttalam">Puttalam</option>
+              <option value="Ratnapura">Ratnapura</option>
+            </select>
+          </div>
+          <div class="form-group col-6">
+            <label for="farmerVillage" class="form-label">Village / Town *</label>
+            <input type="text" id="farmerVillage" placeholder="e.g. Boralanda" required />
+          </div>
+        </div>
+
+        <div class="form-section-title">📦 3. Quality Grading & Packaging</div>
+        <div class="form-row">
+          <div class="form-group col-4">
+            <label for="lotGrade" class="form-label">Quality Grade</label>
+            <select id="lotGrade" class="custom-select">
+              <option value="Grade A Premium Export Quality">Grade A Premium Export Quality</option>
+              <option value="Grade A Commercial">Grade A Commercial</option>
+              <option value="Grade B Standard Food Service">Grade B Standard Food Service</option>
+            </select>
+          </div>
+          <div class="form-group col-4">
+            <label for="lotPackaging" class="form-label">Packaging Standard</label>
+            <input type="text" id="lotPackaging" placeholder="e.g. 25kg Ventilated Mesh Sacks" />
+          </div>
+          <div class="form-group col-4 checkbox-col">
+            <label class="checkbox-container">
+              <input type="checkbox" id="lotOrganic" />
+              <span class="checkmark"></span>
+              100% Certified Organic Harvest
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lotDescription" class="form-label">Lot Description & Harvest Notes</label>
+          <textarea id="lotDescription" rows="2" placeholder="e.g. Morning harvested, washed in mountain spring water, sorted for uniform shape and size."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelPostLotBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitPostLotBtn">
+            Publish Lot to Exchange (48h Bidding Window)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: AWARD DEAL (FARMER) -->
+  <div class="modal-overlay" id="awardModalOverlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-tag bg-amber-tag">FARMER CONTRACT AWARD</span>
+          <h3 id="awardModalCropTitle">Award Harvest Lot</h3>
+          <p id="awardModalSub">Lock deal with highest commercial bidder and generate escrow delivery contract.</p>
+        </div>
+        <button class="modal-close-btn" id="closeAwardModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="awardLotId" />
+
+        <!-- Lot Summary -->
+        <div class="award-lot-banner" id="awardLotBanner">
+          <div class="lot-meta">
+            <span class="lot-name" id="awardLotCropName">Nuwara Eliya Leeks</span>
+            <span class="lot-spec" id="awardLotQuantity">Total Quantity: 1,200 kg</span>
+          </div>
+          <div class="highest-lead-box">
+            <span class="lead-label">Top Commercial Bid</span>
+            <span class="lead-price" id="awardTopPrice">Rs. 295 / kg</span>
+            <span class="lead-total" id="awardTopTotal">Total Contract: Rs. 354,000</span>
+          </div>
+        </div>
+
+        <!-- Bids Board -->
+        <div class="bids-board-container">
+          <h4>Ranked Commercial Bids (<span id="awardBidsCount">0</span>)</h4>
+          <div class="bids-list" id="awardBidsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Escrow Protection Badge -->
+        <div class="escrow-notice">
+          <div class="escrow-icon">🛡️</div>
+          <div class="escrow-text">
+            <strong>100% Escrow Protection Guaranteed</strong>
+            <p>Upon awarding, buyer payment is locked in escrow. Domex Agro-ColdChain will be dispatched for direct farmgate pickup, and funds are automatically released to your bank upon delivery verification.</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelAwardBtn">Close</button>
+          <button type="button" class="btn btn-primary btn-award-action" id="confirmAwardBtn">
+            Accept Highest Bid & Award Contract
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: ORDERS & LOGISTICS TRACKING -->
+  <div class="modal-overlay" id="ordersModalOverlay">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-tag bg-blue-tag">ESCROW CONTRACTS & LOGISTICS</span>
+          <h3>Exchange Contracts & Cold-Chain Tracking</h3>
+          <p>Track awarded harvest shipments, escrow security, and delivery progression across Sri Lanka.</p>
+        </div>
+        <button class="modal-close-btn" id="closeOrdersModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Quick Search Tracking -->
+        <div class="order-search-box">
+          <input type="text" id="orderSearchInput" placeholder="Enter Tracking Number (e.g. AGRI-EXP-77291)..." />
+          <button class="btn btn-sm btn-primary" id="searchOrderBtn">Track Shipment</button>
+        </div>
+
+        <!-- Orders List / Detail -->
+        <div class="orders-container" id="ordersListContainer">
+          <!-- Populated dynamically via app.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Feedback Notification -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-icon">🌾</div>
+        <div>
+          <h3>AgriDirect</h3>
+          <p>Empowering Sri Lankan agriculture through transparent digital price discovery and direct B2B market access.</p>
+        </div>
+      </div>
+      <div class="footer-info">
+        <p>Connected to <strong>Local MongoDB</strong>: <code>agridirect_db</code> | Express REST API on Port 5050</p>
+        <p>&copy; 2026 AgriDirect Farm-to-Business Daily Harvest Exchange.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,781 @@
+// AgriDirect B2B Exchange Client Application
+let currentRole = 'buyer'; // 'buyer' or 'farmer'
+let lotsData = [];
+let marketPricesData = [];
+let ordersData = [];
+let activeCategory = 'all';
+
+// DOM Elements
+const lotsGrid = document.getElementById('lotsGrid');
+const tickerTrack = document.getElementById('tickerTrack');
+const ordersCountBadge = document.getElementById('ordersCountBadge');
+const roleBuyerBtn = document.getElementById('roleBuyerBtn');
+const roleFarmerBtn = document.getElementById('roleFarmerBtn');
+const farmerPostBtn = document.getElementById('farmerPostBtn');
+const farmerCallout = document.getElementById('farmerCallout');
+const modeTag = document.getElementById('modeTag');
+const heroHeadline = document.getElementById('heroHeadline');
+const heroSubtitle = document.getElementById('heroSubtitle');
+const marketplaceTitle = document.getElementById('marketplaceTitle');
+const lotsCountText = document.getElementById('lotsCountText');
+const searchInput = document.getElementById('searchInput');
+const statusFilter = document.getElementById('statusFilter');
+const sortFilter = document.getElementById('sortFilter');
+const toastContainer = document.getElementById('toastContainer');
+
+// KPI elements
+const kpiActiveLots = document.getElementById('kpiActiveLots');
+const kpiProduceKg = document.getElementById('kpiProduceKg');
+const kpiTotalBids = document.getElementById('kpiTotalBids');
+const kpiTransacted = document.getElementById('kpiTransacted');
+
+// Modals
+const bidModalOverlay = document.getElementById('bidModalOverlay');
+const postLotModalOverlay = document.getElementById('postLotModalOverlay');
+const awardModalOverlay = document.getElementById('awardModalOverlay');
+const ordersModalOverlay = document.getElementById('ordersModalOverlay');
+
+// Initialize App
+document.addEventListener('DOMContentLoaded', () => {
+  initEventHandlers();
+  loadMarketPrices();
+  loadDashboardStats();
+  loadLots();
+  loadOrders();
+});
+
+// Event Handlers
+function initEventHandlers() {
+  // Role Switcher
+  roleBuyerBtn.addEventListener('click', () => switchRole('buyer'));
+  roleFarmerBtn.addEventListener('click', () => switchRole('farmer'));
+
+  // Farmer listing buttons
+  farmerPostBtn.addEventListener('click', () => openModal(postLotModalOverlay));
+  document.getElementById('calloutListBtn')?.addEventListener('click', () => openModal(postLotModalOverlay));
+
+  // Orders button
+  document.getElementById('viewOrdersBtn').addEventListener('click', () => {
+    loadOrders();
+    openModal(ordersModalOverlay);
+  });
+  document.getElementById('trackOrderNavBtn').addEventListener('click', () => {
+    loadOrders();
+    openModal(ordersModalOverlay);
+  });
+
+  // Modal Closers
+  document.getElementById('closeBidModal').addEventListener('click', () => closeModal(bidModalOverlay));
+  document.getElementById('cancelBidBtn').addEventListener('click', () => closeModal(bidModalOverlay));
+
+  document.getElementById('closePostLotModal').addEventListener('click', () => closeModal(postLotModalOverlay));
+  document.getElementById('cancelPostLotBtn').addEventListener('click', () => closeModal(postLotModalOverlay));
+
+  document.getElementById('closeAwardModal').addEventListener('click', () => closeModal(awardModalOverlay));
+  document.getElementById('cancelAwardBtn').addEventListener('click', () => closeModal(awardModalOverlay));
+
+  document.getElementById('closeOrdersModal').addEventListener('click', () => closeModal(ordersModalOverlay));
+
+  // Close when clicking overlay backdrop
+  [bidModalOverlay, postLotModalOverlay, awardModalOverlay, ordersModalOverlay].forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal(overlay);
+    });
+  });
+
+  // Category Tabs
+  document.querySelectorAll('.cat-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeCategory = tab.dataset.category;
+      filterAndRenderLots();
+    });
+  });
+
+  // Search & Filter Inputs
+  searchInput.addEventListener('input', () => filterAndRenderLots());
+  statusFilter.addEventListener('change', () => filterAndRenderLots());
+  sortFilter.addEventListener('change', () => filterAndRenderLots());
+
+  // Quick Bid Increment Buttons
+  document.querySelectorAll('.btn-increment').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inc = Number(btn.dataset.inc);
+      const minNext = Number(document.getElementById('bidOfferInput').min);
+      const currentVal = Number(document.getElementById('bidOfferInput').value) || minNext;
+      const newVal = Math.max(minNext, currentVal + inc);
+      document.getElementById('bidOfferInput').value = newVal;
+      updateContractCalc();
+    });
+  });
+
+  document.getElementById('bidOfferInput').addEventListener('input', updateContractCalc);
+
+  // Buyer Org custom toggle
+  const buyerOrgSelect = document.getElementById('buyerOrgSelect');
+  buyerOrgSelect.addEventListener('change', () => {
+    const customFields = document.getElementById('customBuyerFields');
+    customFields.style.display = buyerOrgSelect.value === 'custom' ? 'block' : 'none';
+  });
+
+  // Submit Bid Form
+  document.getElementById('placeBidForm').addEventListener('submit', handlePlaceBid);
+
+  // Submit Post Lot Form
+  document.getElementById('postLotForm').addEventListener('submit', handlePostLot);
+
+  // Confirm Award Button
+  document.getElementById('confirmAwardBtn').addEventListener('click', handleAwardDeal);
+
+  // Track Single Order Button in Modal
+  document.getElementById('searchOrderBtn').addEventListener('click', handleSearchOrder);
+}
+
+// Switch Role
+function switchRole(role) {
+  currentRole = role;
+  if (role === 'buyer') {
+    roleBuyerBtn.classList.add('active');
+    roleFarmerBtn.classList.remove('active');
+    farmerPostBtn.style.display = 'none';
+    farmerCallout.style.display = 'none';
+    modeTag.textContent = 'BUYER PROCUREMENT MODE';
+    modeTag.className = 'badge-tag';
+    heroHeadline.textContent = 'Direct Farm Gate Bidding & Daily Wholesale Procurement';
+    heroSubtitle.textContent = 'Eliminate broker exploitation. Commercial kitchens, supermarkets, and food processors bid directly on freshly harvested farm lots across Sri Lanka with transparent price discovery and cold-chain escrow delivery.';
+    marketplaceTitle.textContent = 'Live Harvest Exchange Lots (Buyer Bidding)';
+  } else {
+    roleFarmerBtn.classList.add('active');
+    roleBuyerBtn.classList.remove('active');
+    farmerPostBtn.style.display = 'inline-flex';
+    farmerCallout.style.display = 'flex';
+    modeTag.textContent = 'FARMER COMMAND HUB';
+    modeTag.className = 'badge-tag bg-amber-tag';
+    heroHeadline.textContent = 'Post Daily Morning Harvest & Award High-Value Commercial Deals';
+    heroSubtitle.textContent = 'List fresh produce directly to verified commercial buyers. Receive instant competing bids from top hotels and supermarkets, and award deals with 100% escrow protection and direct farmgate pickup.';
+    marketplaceTitle.textContent = 'Farmer Harvest Lots (Manage & Award Deals)';
+  }
+  filterAndRenderLots();
+}
+
+// Open / Close Modal
+function openModal(modal) {
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(modal) {
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Show Toast
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠️'}</span> <div>${message}</div>`;
+  toastContainer.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+// Fetch Market Benchmark Prices
+async function loadMarketPrices() {
+  try {
+    const res = await fetch('/api/market-prices');
+    const json = await res.json();
+    if (json.success) {
+      marketPricesData = json.data;
+      renderTicker(marketPricesData);
+    }
+  } catch (err) {
+    console.error('Failed to load market prices:', err);
+  }
+}
+
+function renderTicker(prices) {
+  if (!prices || prices.length === 0) return;
+  const itemsHtml = prices.map(p => {
+    const trendIcon = p.trend === 'up' ? '▲' : p.trend === 'down' ? '▼' : '▬';
+    const trendColor = p.trend === 'up' ? '#34d399' : p.trend === 'down' ? '#f87171' : '#94a3b8';
+    return `<span class="ticker-item">
+      <span class="crop-badge">${p.crop}</span>:
+      Dambulla <span class="price-badge">Rs.${p.dambullaWholesalePrice}/kg</span> |
+      Manning <span class="price-badge">Rs.${p.manningWholesalePrice}/kg</span>
+      <small style="color: ${trendColor}">${trendIcon}</small>
+    </span>`;
+  }).join('&nbsp;&nbsp;•&nbsp;&nbsp;');
+
+  // Repeat for continuous marquee
+  tickerTrack.innerHTML = `${itemsHtml}&nbsp;&nbsp;•&nbsp;&nbsp;${itemsHtml}`;
+}
+
+// Fetch Dashboard Analytics
+async function loadDashboardStats() {
+  try {
+    const res = await fetch('/api/market-prices/stats');
+    const json = await res.json();
+    if (json.success) {
+      const stats = json.data;
+      kpiActiveLots.textContent = stats.activeLots || 0;
+      kpiProduceKg.textContent = Number(stats.totalProduceKg || 0).toLocaleString() + ' kg';
+      kpiTotalBids.textContent = stats.totalBids || 0;
+      kpiTransacted.textContent = 'Rs. ' + Number(stats.totalTransactedLKR || 0).toLocaleString();
+    }
+  } catch (err) {
+    console.error('Failed to load stats:', err);
+  }
+}
+
+// Fetch Harvest Lots
+async function loadLots() {
+  try {
+    const res = await fetch('/api/lots');
+    const json = await res.json();
+    if (json.success) {
+      lotsData = json.data;
+      filterAndRenderLots();
+    }
+  } catch (err) {
+    lotsGrid.innerHTML = `<div class="empty-state">
+      <h4>Failed to connect to AgriDirect API</h4>
+      <p>Ensure backend is running on port 5050.</p>
+    </div>`;
+  }
+}
+
+// Filter and Render Lots
+function filterAndRenderLots() {
+  let filtered = [...lotsData];
+
+  // Category filter
+  if (activeCategory !== 'all') {
+    filtered = filtered.filter(l => l.category.toLowerCase() === activeCategory.toLowerCase());
+  }
+
+  // Status filter
+  const statusVal = statusFilter.value;
+  if (statusVal !== 'all') {
+    filtered = filtered.filter(l => l.status === statusVal);
+  }
+
+  // Search keyword
+  const query = searchInput.value.trim().toLowerCase();
+  if (query) {
+    filtered = filtered.filter(l =>
+      l.crop.toLowerCase().includes(query) ||
+      (l.variety && l.variety.toLowerCase().includes(query)) ||
+      (l.farmer && l.farmer.district && l.farmer.district.toLowerCase().includes(query)) ||
+      (l.farmer && l.farmer.farmName && l.farmer.farmName.toLowerCase().includes(query))
+    );
+  }
+
+  // Sort
+  const sortVal = sortFilter.value;
+  if (sortVal === 'highestBid') {
+    filtered.sort((a, b) => b.currentHighestBid - a.currentHighestBid);
+  } else if (sortVal === 'quantity') {
+    filtered.sort((a, b) => b.quantityKg - a.quantityKg);
+  } else if (sortVal === 'priceLow') {
+    filtered.sort((a, b) => a.basePricePerKg - b.basePricePerKg);
+  } else {
+    // Newest
+    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  lotsCountText.textContent = `Showing ${filtered.length} of ${lotsData.length} lots`;
+
+  if (filtered.length === 0) {
+    lotsGrid.innerHTML = `<div class="empty-state">
+      <h4>No harvest lots match your criteria</h4>
+      <p>Try resetting filters or search terms.</p>
+    </div>`;
+    return;
+  }
+
+  lotsGrid.innerHTML = filtered.map(lot => renderLotCard(lot)).join('');
+
+  // Attach card button listeners
+  attachCardEvents();
+}
+
+// Render Single Card HTML
+function renderLotCard(lot) {
+  const isOpen = lot.status === 'bidding_open';
+  const statusClass = isOpen ? 'status-open' : 'status-awarded';
+  const statusLabel = isOpen ? '🟢 Bidding Open' : '🏆 Deal Awarded';
+
+  const highestBidDisplay = lot.currentHighestBid && lot.currentHighestBid > 0 
+    ? `Rs. ${lot.currentHighestBid} / kg` 
+    : `Rs. ${lot.basePricePerKg} / kg`;
+
+  const leaderOrg = lot.highestBidderOrg || 'No commercial bids yet';
+  const bidsCount = lot.bids ? lot.bids.length : 0;
+
+  // Action button depending on role & status
+  let actionButton = '';
+  if (isOpen) {
+    if (currentRole === 'buyer') {
+      actionButton = `<button class="btn btn-primary lot-action-btn btn-place-bid" data-id="${lot._id}">
+        🏷️ Place Commercial Bid
+      </button>`;
+    } else {
+      actionButton = `<button class="btn btn-primary lot-action-btn btn-review-award" data-id="${lot._id}">
+        ⚡ Review Bids & Award Deal (${bidsCount})
+      </button>`;
+    }
+  } else {
+    actionButton = `<button class="btn btn-outline lot-action-btn btn-view-order-deal" data-order="${lot.awardedOrder || ''}">
+      📦 View Awarded Deal & Tracking
+    </button>`;
+  }
+
+  return `
+    <div class="lot-card" data-lot-id="${lot._id}">
+      <div class="lot-card-header">
+        <div class="lot-badge-row">
+          <span class="category-tag ${lot.category}">${lot.category}</span>
+          ${lot.specifications?.organicCertified ? '<span class="organic-chip">🌱 100% Organic</span>' : ''}
+          <span class="category-tag">${lot.specifications?.grade || 'Grade A'}</span>
+        </div>
+        <span class="status-pill ${statusClass}">${statusLabel}</span>
+      </div>
+
+      <div class="lot-card-body">
+        <h4 class="crop-name">${lot.crop}</h4>
+        <div class="crop-variety">${lot.variety || 'Standard Harvest'}</div>
+
+        <div class="farm-location-row">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span><strong>${lot.farmer?.district || 'Central Province'}</strong> (${lot.farmer?.village || 'Highlands'}) • ${lot.farmer?.farmName || 'Verified Farm'}</span>
+        </div>
+
+        <div class="specs-strip">
+          <span class="spec-entry">Packaging: <strong>${lot.specifications?.packaging || 'Standard Crates'}</strong></span>
+          ${lot.specifications?.description ? `<p style="width: 100%; font-size: 0.76rem; color: #475569; margin-top: 4px;">"${lot.specifications.description}"</p>` : ''}
+        </div>
+
+        <div class="financial-box">
+          <div class="financial-item">
+            <span class="financial-lbl">Available Quantity</span>
+            <span class="financial-val">${Number(lot.quantityKg).toLocaleString()} kg</span>
+          </div>
+          <div class="financial-item">
+            <span class="financial-lbl">Reserve Base Price</span>
+            <span class="financial-val">Rs. ${lot.basePricePerKg} / kg</span>
+          </div>
+          <div class="financial-item primary-highlight">
+            <span class="financial-lbl">Current Highest Commercial Bid</span>
+            <span class="financial-val">${highestBidDisplay}</span>
+            <span class="leader-name">Leader: ${leaderOrg}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lot-card-footer">
+        <div class="bids-counter">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>${bidsCount} Bids Placed</span>
+        </div>
+        <div style="flex: 1; max-width: 210px;">
+          ${actionButton}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Attach Event Listeners to Card Buttons
+function attachCardEvents() {
+  document.querySelectorAll('.btn-place-bid').forEach(btn => {
+    btn.addEventListener('click', () => openBidModal(btn.dataset.id));
+  });
+
+  document.querySelectorAll('.btn-review-award').forEach(btn => {
+    btn.addEventListener('click', () => openAwardModal(btn.dataset.id));
+  });
+
+  document.querySelectorAll('.btn-view-order-deal').forEach(btn => {
+    btn.addEventListener('click', () => {
+      loadOrders();
+      openModal(ordersModalOverlay);
+    });
+  });
+}
+
+// Open Place Bid Modal
+let activeBidLot = null;
+function openBidModal(lotId) {
+  const lot = lotsData.find(l => l._id === lotId);
+  if (!lot) return;
+  activeBidLot = lot;
+
+  document.getElementById('bidLotId').value = lot._id;
+  document.getElementById('bidModalCropName').textContent = lot.crop;
+  document.getElementById('bidModalLotSub').textContent = `Variety: ${lot.variety} • Total Lot: ${Number(lot.quantityKg).toLocaleString()} kg`;
+  document.getElementById('bidModalBasePrice').textContent = `Rs. ${lot.basePricePerKg} / kg`;
+
+  const currentHighest = lot.currentHighestBid || lot.basePricePerKg;
+  document.getElementById('bidModalCurrentHighest').textContent = `Rs. ${currentHighest} / kg`;
+
+  const minNext = currentHighest + 1;
+  document.getElementById('bidModalMinNext').textContent = `Rs. ${minNext} / kg`;
+
+  const bidOfferInput = document.getElementById('bidOfferInput');
+  bidOfferInput.min = minNext;
+  bidOfferInput.value = minNext + 5; // Default suggestion +5
+  updateContractCalc();
+
+  openModal(bidModalOverlay);
+}
+
+function updateContractCalc() {
+  if (!activeBidLot) return;
+  const offer = Number(document.getElementById('bidOfferInput').value) || 0;
+  const total = Math.round(offer * activeBidLot.quantityKg);
+  document.getElementById('bidTotalContractCalc').textContent = `Rs. ${total.toLocaleString()}`;
+  document.getElementById('bidLotWeightSummary').textContent = `(@ ${Number(activeBidLot.quantityKg).toLocaleString()} kg)`;
+}
+
+// Submit Bid
+async function handlePlaceBid(e) {
+  e.preventDefault();
+  const lotId = document.getElementById('bidLotId').value;
+  const offer = Number(document.getElementById('bidOfferInput').value);
+  const orgSelect = document.getElementById('buyerOrgSelect');
+  let orgName = orgSelect.value;
+  let contactName = orgSelect.options[orgSelect.selectedIndex]?.dataset.name || 'Commercial Buyer';
+
+  if (orgName === 'custom') {
+    orgName = document.getElementById('customOrgName').value.trim();
+    contactName = document.getElementById('customBuyerContact').value.trim();
+    if (!orgName || !contactName) {
+      alert('Please provide your business name and contact name.');
+      return;
+    }
+  }
+
+  const notes = document.getElementById('bidNotes').value.trim();
+
+  const submitBtn = document.getElementById('submitBidBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting Bid to Exchange...';
+
+  try {
+    const res = await fetch(`/api/lots/${lotId}/bids`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        offeredPricePerKg: offer,
+        bidderName: contactName,
+        buyerOrganization: orgName,
+        notes
+      })
+    });
+
+    const json = await res.json();
+    if (res.ok && json.success) {
+      showToast(`Bid Placed Successfully! Your offer of Rs. ${offer}/kg is now leading on ${activeBidLot.crop}!`);
+      closeModal(bidModalOverlay);
+      await loadLots();
+      await loadDashboardStats();
+    } else {
+      showToast(json.error || json.message || 'Bid rejected.', 'error');
+    }
+  } catch (err) {
+    showToast('Failed to submit bid. Please check network connection.', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Confirm & Place Official Bid';
+  }
+}
+
+// Submit Post Harvest Lot Form (Farmer)
+async function handlePostLot(e) {
+  e.preventDefault();
+  const crop = document.getElementById('lotCrop').value.trim();
+  const category = document.getElementById('lotCategory').value;
+  const variety = document.getElementById('lotVariety').value.trim();
+  const quantityKg = Number(document.getElementById('lotQuantity').value);
+  const basePricePerKg = Number(document.getElementById('lotBasePrice').value);
+
+  const farmerName = document.getElementById('farmerName').value.trim();
+  const farmName = document.getElementById('farmerEstate').value.trim();
+  const phone = document.getElementById('farmerPhone').value.trim();
+  const district = document.getElementById('farmerDistrict').value;
+  const village = document.getElementById('farmerVillage').value.trim();
+
+  const grade = document.getElementById('lotGrade').value;
+  const packaging = document.getElementById('lotPackaging').value.trim();
+  const organicCertified = document.getElementById('lotOrganic').checked;
+  const description = document.getElementById('lotDescription').value.trim();
+
+  const submitBtn = document.getElementById('submitPostLotBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Listing Lot on MongoDB...';
+
+  try {
+    const res = await fetch('/api/lots', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        crop,
+        category,
+        variety,
+        quantityKg,
+        basePricePerKg,
+        farmer: { name: farmerName, farmName, phone, district, village },
+        specifications: { grade, packaging, organicCertified, description }
+      })
+    });
+
+    const json = await res.json();
+    if (res.ok && json.success) {
+      showToast(`New Lot Listed! ${crop} (${quantityKg} kg) is now live on the exchange.`);
+      closeModal(postLotModalOverlay);
+      document.getElementById('postLotForm').reset();
+      await loadLots();
+      await loadDashboardStats();
+    } else {
+      showToast(json.error || 'Failed to list harvest lot.', 'error');
+    }
+  } catch (err) {
+    showToast('Error listing lot. Backend offline?', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Publish Lot to Exchange (48h Bidding Window)';
+  }
+}
+
+// Open Award Modal (Farmer)
+let activeAwardLot = null;
+function openAwardModal(lotId) {
+  const lot = lotsData.find(l => l._id === lotId);
+  if (!lot) return;
+  activeAwardLot = lot;
+
+  document.getElementById('awardLotId').value = lot._id;
+  document.getElementById('awardLotCropName').textContent = lot.crop;
+  document.getElementById('awardLotQuantity').textContent = `Variety: ${lot.variety} • Total: ${Number(lot.quantityKg).toLocaleString()} kg`;
+
+  const topPrice = lot.currentHighestBid || lot.basePricePerKg;
+  const totalVal = Math.round(topPrice * lot.quantityKg);
+  document.getElementById('awardTopPrice').textContent = `Rs. ${topPrice} / kg`;
+  document.getElementById('awardTopTotal').textContent = `Total Contract: Rs. ${totalVal.toLocaleString()}`;
+
+  const bids = lot.bids || [];
+  document.getElementById('awardBidsCount').textContent = bids.length;
+
+  const sortedBids = [...bids].sort((a, b) => b.offeredPricePerKg - a.offeredPricePerKg);
+  const bidsListEl = document.getElementById('awardBidsList');
+
+  if (sortedBids.length === 0) {
+    bidsListEl.innerHTML = `<div style="padding: 18px; text-align: center; color: #64748b;">No bids placed on this lot yet.</div>`;
+    document.getElementById('confirmAwardBtn').disabled = true;
+  } else {
+    document.getElementById('confirmAwardBtn').disabled = false;
+    bidsListEl.innerHTML = sortedBids.map((b, idx) => `
+      <div class="bid-row-item ${idx === 0 ? 'winning' : ''}">
+        <div style="display: flex; align-items: center;">
+          <span class="bid-rank-pill">#${idx + 1}</span>
+          <div class="bidder-info">
+            <strong>${b.buyerOrganization}</strong>
+            <small>Contact: ${b.bidderName} • ${new Date(b.placedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+            ${b.notes ? `<small style="display: block; color: #047857;">"${b.notes}"</small>` : ''}
+          </div>
+        </div>
+        <div class="bid-row-financials">
+          <div class="bid-row-price">Rs. ${b.offeredPricePerKg} / kg</div>
+          <small>Total: Rs. ${Number(b.totalBidAmount).toLocaleString()}</small>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  openModal(awardModalOverlay);
+}
+
+// Handle Award Deal
+async function handleAwardDeal() {
+  if (!activeAwardLot) return;
+  const lotId = activeAwardLot._id;
+  const awardBtn = document.getElementById('confirmAwardBtn');
+
+  awardBtn.disabled = true;
+  awardBtn.textContent = 'Generating Escrow Contract...';
+
+  try {
+    const res = await fetch(`/api/lots/${lotId}/award`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const json = await res.json();
+    if (res.ok && json.success) {
+      showToast(`Deal Awarded! Tracking number: ${json.data.order.trackingNumber}`);
+      closeModal(awardModalOverlay);
+      await loadLots();
+      await loadOrders();
+      await loadDashboardStats();
+    } else {
+      showToast(json.error || 'Failed to award deal.', 'error');
+    }
+  } catch (err) {
+    showToast('Network error while awarding deal.', 'error');
+  } finally {
+    awardBtn.disabled = false;
+    awardBtn.textContent = 'Accept Highest Bid & Award Contract';
+  }
+}
+
+// Load Orders & Logistics
+async function loadOrders() {
+  try {
+    const res = await fetch('/api/orders');
+    const json = await res.json();
+    if (json.success) {
+      ordersData = json.data;
+      ordersCountBadge.textContent = ordersData.length;
+      renderOrdersList(ordersData);
+    }
+  } catch (err) {
+    console.error('Failed to load orders:', err);
+  }
+}
+
+function renderOrdersList(orders) {
+  const container = document.getElementById('ordersListContainer');
+  if (!orders || orders.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <h4>No orders awarded yet</h4>
+      <p>When a farmer accepts a deal, contract details will appear here.</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = orders.map(ord => {
+    // Stepper state
+    const statuses = ['confirmed', 'dispatched', 'in_transit', 'delivered'];
+    const currentIdx = statuses.indexOf(ord.status);
+
+    return `
+      <div class="order-card" data-order-id="${ord._id}">
+        <div class="order-card-header">
+          <div>
+            <span class="order-tracking-badge">📦 ${ord.trackingNumber}</span>
+            <strong style="margin-left: 12px; font-size: 1.05rem;">${ord.crop} (${Number(ord.quantityKg).toLocaleString()} kg)</strong>
+          </div>
+          <div>
+            <span class="status-pill status-open">Escrow: ${ord.escrowStatus.replace(/_/g, ' ').toUpperCase()}</span>
+          </div>
+        </div>
+
+        <!-- 4-Step Shipment Progress -->
+        <div class="shipment-stepper">
+          <div class="step-item ${currentIdx >= 0 ? 'completed' : ''} ${currentIdx === 0 ? 'current' : ''}">
+            <div class="step-node">1</div>
+            <span class="step-lbl">Funds in Escrow</span>
+          </div>
+          <div class="step-item ${currentIdx >= 1 ? 'completed' : ''} ${currentIdx === 1 ? 'current' : ''}">
+            <div class="step-node">2</div>
+            <span class="step-lbl">Cold-Chain Pickup</span>
+          </div>
+          <div class="step-item ${currentIdx >= 2 ? 'completed' : ''} ${currentIdx === 2 ? 'current' : ''}">
+            <div class="step-node">3</div>
+            <span class="step-lbl">In Transit</span>
+          </div>
+          <div class="step-item ${currentIdx >= 3 ? 'completed' : ''} ${currentIdx === 3 ? 'current' : ''}">
+            <div class="step-node">4</div>
+            <span class="step-lbl">Delivered & Released</span>
+          </div>
+        </div>
+
+        <div class="order-details-grid">
+          <div>
+            <strong>👨‍🌾 Farmer Origin:</strong> ${ord.farmer.farmName} (${ord.farmer.district})<br>
+            <small>Pickup: ${ord.farmer.pickupAddress} • ${ord.farmer.phone}</small>
+          </div>
+          <div>
+            <strong>🏢 Commercial Buyer:</strong> ${ord.buyer.organization}<br>
+            <small>Contact: ${ord.buyer.name} • Delivery: ${ord.buyer.deliveryAddress}</small>
+          </div>
+          <div>
+            <strong>🚚 Logistics:</strong> ${ord.logistics?.courier || 'Domex Agro Express'}<br>
+            <small>Vehicle: ${ord.logistics?.vehicleNumber || 'WP-AG-8291'} • Driver: ${ord.logistics?.driverContact || '+94 77 123 9988'}</small>
+          </div>
+          <div>
+            <strong>💰 Contract Value:</strong> Rs. ${Number(ord.totalContractValue).toLocaleString()}<br>
+            <small>Winning Rate: Rs. ${ord.winningPricePerKg} / kg</small>
+          </div>
+        </div>
+
+        <div class="order-status-actions">
+          <small style="margin-right: auto; color: #64748b;">Simulate Logistics Update:</small>
+          ${ord.status !== 'in_transit' && ord.status !== 'delivered' ? `
+            <button class="btn btn-sm btn-outline btn-step-status" data-id="${ord._id}" data-status="in_transit">
+              Mark In-Transit
+            </button>
+          ` : ''}
+          ${ord.status !== 'delivered' ? `
+            <button class="btn btn-sm btn-primary btn-step-status" data-id="${ord._id}" data-status="delivered">
+              Confirm Delivery & Release Escrow
+            </button>
+          ` : '<span style="color: #047857; font-weight: 700; font-size: 0.82rem;">✓ Delivered & Escrow Released to Farmer</span>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Attach status transition listeners
+  document.querySelectorAll('.btn-step-status').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const orderId = btn.dataset.id;
+      const nextStatus = btn.dataset.status;
+      try {
+        const res = await fetch(`/api/orders/${orderId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus })
+        });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          showToast(`Order status updated to: ${nextStatus}`);
+          await loadOrders();
+          await loadDashboardStats();
+        }
+      } catch (err) {
+        showToast('Failed to update status', 'error');
+      }
+    });
+  });
+}
+
+// Search Order by Tracking Number
+async function handleSearchOrder() {
+  const term = document.getElementById('orderSearchInput').value.trim().toUpperCase();
+  if (!term) {
+    renderOrdersList(ordersData);
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/orders/${term}`);
+    const json = await res.json();
+    if (res.ok && json.success) {
+      renderOrdersList([json.data]);
+    } else {
+      document.getElementById('ordersListContainer').innerHTML = `
+        <div class="empty-state">
+          <h4>No shipment found with tracking #${term}</h4>
+          <p>Please double-check the tracking ID.</p>
+        </div>
+      `;
+    }
+  } catch (err) {
+    showToast('Failed to fetch tracking details.', 'error');
+  }
+}
