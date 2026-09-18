@@ -1671,3 +1671,23 @@ select:focus,
   color: #047857;
   font-size: 0.78rem;
 }
+
+/* STATUS DOT INDICATOR */
+.status-dot-active {
+  width: 7px;
+  height: 7px;
+  background-color: #16a34a;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
+  margin-right: 4px;
+}
+
+.status-pill svg {
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.cat-tab svg, .btn svg {
+  vertical-align: middle;
+}

@@ -73,7 +73,9 @@ function renderUserAuthUI() {
   if (currentUser) {
     authButtons.style.display = 'none';
     userProfileBadge.style.display = 'flex';
-    userAvatar.textContent = currentUser.role === 'farmer' ? '👨‍🌾' : '🏢';
+    userAvatar.innerHTML = currentUser.role === 'farmer' 
+      ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>' 
+      : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/></svg>';
     userNameText.textContent = currentUser.name;
     userOrgText.textContent = `${currentUser.organization} • ${currentUser.role.toUpperCase()}`;
 
@@ -386,7 +388,10 @@ function closeModal(modal) {
 function showToast(message, type = 'success') {
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠️'}</span> <div>${message}</div>`;
+  const icon = type === 'success' 
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  toast.innerHTML = `<span>${icon}</span> <div>${message}</div>`;
   toastContainer.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
@@ -515,7 +520,9 @@ function filterAndRenderLots() {
 function renderLotCard(lot) {
   const isOpen = lot.status === 'bidding_open';
   const statusClass = isOpen ? 'status-open' : 'status-awarded';
-  const statusLabel = isOpen ? '🟢 Bidding Open' : '🏆 Deal Awarded';
+  const statusLabel = isOpen 
+      ? `<span class="status-dot-active"></span> Bidding Open` 
+      : `<svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2'><path d='M6 9H4.5a2.5 2.5 0 0 1 0-5H6'/><path d='M18 9h1.5a2.5 2.5 0 0 0 0-5H18'/><path d='M4 22h16'/><path d='M18 4H6v7a6 6 0 0 0 12 0V4Z'/></svg> Deal Awarded`;
 
   const highestBidDisplay = lot.currentHighestBid && lot.currentHighestBid > 0 
     ? `Rs. ${lot.currentHighestBid} / kg` 
@@ -528,16 +535,16 @@ function renderLotCard(lot) {
   if (isOpen) {
     if (currentRole === 'buyer') {
       actionButton = `<button class="btn btn-primary lot-action-btn btn-place-bid" data-id="${lot._id}">
-        🏷️ Place Commercial Bid
+        <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><line x1='12' y1='1' x2='12' y2='23'/><path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/></svg> Place Commercial Bid
       </button>`;
     } else {
       actionButton = `<button class="btn btn-primary lot-action-btn btn-review-award" data-id="${lot._id}">
-        ⚡ Review Bids & Award Deal (${bidsCount})
+        <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg> Review Bids (${bidsCount})
       </button>`;
     }
   } else {
     actionButton = `<button class="btn btn-outline lot-action-btn btn-view-order-deal" data-order="${lot.awardedOrder || ''}">
-      📦 View Awarded Deal & Tracking
+      <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><rect x='1' y='3' width='15' height='13'/><polygon points='16 8 20 8 23 11 23 16 16 16 16 8'/><circle cx='5.5' cy='18.5' r='2.5'/><circle cx='18.5' cy='18.5' r='2.5'/></svg> View Deal & Tracking
     </button>`;
   }
 
@@ -546,7 +553,7 @@ function renderLotCard(lot) {
       <div class="lot-card-header">
         <div class="lot-badge-row">
           <span class="category-tag ${lot.category}">${lot.category}</span>
-          ${lot.specifications?.organicCertified ? '<span class="organic-chip">🌱 100% Organic</span>' : ''}
+          ${lot.specifications?.organicCertified ? '<span class="organic-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg> 100% Organic</span>' : ''}
           <span class="category-tag">${lot.specifications?.grade || 'Grade A'}</span>
         </div>
         <span class="status-pill ${statusClass}">${statusLabel}</span>
@@ -897,7 +904,7 @@ function renderOrdersList(orders) {
       <div class="order-card" data-order-id="${ord._id}">
         <div class="order-card-header">
           <div>
-            <span class="order-tracking-badge">📦 ${ord.trackingNumber}</span>
+            <span class="order-tracking-badge">${ord.trackingNumber}</span>
             <strong style="margin-left: 12px; font-size: 1.05rem;">${ord.crop} (${Number(ord.quantityKg).toLocaleString()} kg)</strong>
           </div>
           <div>
@@ -926,19 +933,19 @@ function renderOrdersList(orders) {
 
         <div class="order-details-grid">
           <div>
-            <strong>👨‍🌾 Farmer Origin:</strong> ${ord.farmer.farmName} (${ord.farmer.district})<br>
+            <strong>Farmer Origin:</strong> ${ord.farmer.farmName} (${ord.farmer.district})<br>
             <small>Pickup: ${ord.farmer.pickupAddress} • ${ord.farmer.phone}</small>
           </div>
           <div>
-            <strong>🏢 Commercial Buyer:</strong> ${ord.buyer.organization}<br>
+            <strong>Commercial Buyer:</strong> ${ord.buyer.organization}<br>
             <small>Contact: ${ord.buyer.name} • Delivery: ${ord.buyer.deliveryAddress}</small>
           </div>
           <div>
-            <strong>🚚 Logistics:</strong> ${ord.logistics?.courier || 'Domex Agro Express'}<br>
+            <strong>Logistics Partner:</strong> ${ord.logistics?.courier || 'Domex Agro Express'}<br>
             <small>Vehicle: ${ord.logistics?.vehicleNumber || 'WP-AG-8291'} • Driver: ${ord.logistics?.driverContact || '+94 77 123 9988'}</small>
           </div>
           <div>
-            <strong>💰 Contract Value:</strong> Rs. ${Number(ord.totalContractValue).toLocaleString()}<br>
+            <strong>Contract Total Value:</strong> Rs. ${Number(ord.totalContractValue).toLocaleString()}<br>
             <small>Winning Rate: Rs. ${ord.winningPricePerKg} / kg</small>
           </div>
         </div>
@@ -954,7 +961,7 @@ function renderOrdersList(orders) {
             <button class="btn btn-sm btn-primary btn-step-status" data-id="${ord._id}" data-status="delivered">
               Confirm Delivery & Release Escrow
             </button>
-          ` : '<span style="color: #047857; font-weight: 700; font-size: 0.82rem;">✓ Delivered & Escrow Released to Farmer</span>'}
+          ` : '<span style="color: #047857; font-weight: 700; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Delivered & Escrow Released to Farmer</span>'}
         </div>
       </div>
     `;
