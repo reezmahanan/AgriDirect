@@ -1,3 +1,30 @@
+
+// Produce Image Fallback Catalog
+function getProduceImage(cropName, category, imageUrl) {
+  if (imageUrl && imageUrl.trim().startsWith('http')) {
+    return imageUrl;
+  }
+  const lower = (cropName || '').toLowerCase();
+  if (lower.includes('leek')) return 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=600&auto=format&fit=crop&q=80';
+  if (lower.includes('onion')) return 'https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?w=600&auto=format&fit=crop&q=80';
+  if (lower.includes('chilli') || lower.includes('chili') || lower.includes('pepper')) {
+    if (lower.includes('black pepper')) return 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=600&auto=format&fit=crop&q=80';
+    return 'https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?w=600&auto=format&fit=crop&q=80';
+  }
+  if (lower.includes('potato')) return 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop&q=80';
+  if (lower.includes('carrot')) return 'https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?w=600&auto=format&fit=crop&q=80';
+  if (lower.includes('cabbage')) return 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=600&auto=format&fit=crop&q=80';
+  if (lower.includes('banana')) return 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&auto=format&fit=crop&q=80';
+  if (lower.includes('tomato')) return 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&auto=format&fit=crop&q=80';
+
+  // Category fallbacks
+  const cat = (category || '').toLowerCase();
+  if (cat === 'fruits') return 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop&q=80';
+  if (cat === 'spices') return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80';
+  if (cat === 'tubers') return 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop&q=80';
+  return 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80';
+}
+
 // AgriDirect B2B Exchange Client Application
 let currentRole = 'buyer'; // 'buyer' or 'farmer'
 let currentUser = null;    // Logged in user object
@@ -550,13 +577,16 @@ function renderLotCard(lot) {
 
   return `
     <div class="lot-card" data-lot-id="${lot._id}">
-      <div class="lot-card-header">
-        <div class="lot-badge-row">
-          <span class="category-tag ${lot.category}">${lot.category}</span>
-          ${lot.specifications?.organicCertified ? '<span class="organic-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg> 100% Organic</span>' : ''}
-          <span class="category-tag">${lot.specifications?.grade || 'Grade A'}</span>
+      <div class="lot-image-wrap">
+        <img src="${getProduceImage(lot.crop, lot.category, lot.imageUrl)}" alt="${lot.crop}" class="lot-image" loading="lazy" />
+        <div class="lot-image-gradient"></div>
+        <div class="lot-image-badges">
+          <div class="lot-badge-row">
+            <span class="category-tag ${lot.category}">${lot.category}</span>
+            ${lot.specifications?.organicCertified ? '<span class="organic-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg> Organic</span>' : ''}
+          </div>
+          <span class="status-pill ${statusClass}">${statusLabel}</span>
         </div>
-        <span class="status-pill ${statusClass}">${statusLabel}</span>
       </div>
 
       <div class="lot-card-body">
@@ -732,6 +762,7 @@ async function handlePostLot(e) {
   const crop = document.getElementById('lotCrop').value.trim();
   const category = document.getElementById('lotCategory').value;
   const variety = document.getElementById('lotVariety').value.trim();
+  const imageUrl = document.getElementById('lotImageUrl') ? document.getElementById('lotImageUrl').value.trim() : '';
   const quantityKg = Number(document.getElementById('lotQuantity').value);
   const basePricePerKg = Number(document.getElementById('lotBasePrice').value);
 
@@ -758,6 +789,7 @@ async function handlePostLot(e) {
         crop,
         category,
         variety,
+        imageUrl,
         quantityKg,
         basePricePerKg,
         farmer: {
@@ -907,8 +939,12 @@ function renderOrdersList(orders) {
             <span class="order-tracking-badge">${ord.trackingNumber}</span>
             <strong style="margin-left: 12px; font-size: 1.05rem;">${ord.crop} (${Number(ord.quantityKg).toLocaleString()} kg)</strong>
           </div>
-          <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
             <span class="status-pill status-open">Escrow: ${ord.escrowStatus.replace(/_/g, ' ').toUpperCase()}</span>
+            <button class="btn btn-sm btn-danger btn-delete-order" data-id="${ord._id}" data-tracking="${ord.trackingNumber}" title="Cancel & Remove Order">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+              Remove Order
+            </button>
           </div>
         </div>
 
@@ -985,6 +1021,34 @@ function renderOrdersList(orders) {
         }
       } catch (err) {
         showToast('Failed to update status', 'error');
+      }
+    });
+  });
+
+  // Delete / Cancel Exchange Order Listener
+  document.querySelectorAll('.btn-delete-order').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const orderId = btn.dataset.id;
+      const tracking = btn.dataset.tracking;
+      if (!confirm(`Are you sure you want to remove exchange order ${tracking}? The associated harvest lot will be reopened on the exchange.`)) {
+        return;
+      }
+      try {
+        const res = await fetch(`/api/orders/${orderId}`, {
+          method: 'DELETE'
+        });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          showToast(`Order #${tracking} removed. Associated harvest lot reopened!`);
+          await loadOrders();
+          await loadLots();
+          await loadDashboardStats();
+        } else {
+          showToast(json.error || 'Failed to remove order.', 'error');
+        }
+      } catch (err) {
+        showToast('Failed to remove order. Please try again.', 'error');
       }
     });
   });

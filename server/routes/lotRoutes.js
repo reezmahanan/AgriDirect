@@ -63,6 +63,7 @@ router.post('/', validateLot, async (req, res, next) => {
       crop,
       category,
       variety,
+      imageUrl,
       quantityKg,
       basePricePerKg,
       harvestDate,
@@ -77,6 +78,7 @@ router.post('/', validateLot, async (req, res, next) => {
       crop: crop.trim(),
       category: category.toLowerCase(),
       variety: variety || 'Standard Harvest',
+      imageUrl: imageUrl || '',
       quantityKg: Number(quantityKg),
       basePricePerKg: Number(basePricePerKg),
       currentHighestBid: Number(basePricePerKg),
@@ -250,6 +252,23 @@ router.post('/:id/award', async (req, res, next) => {
         order: savedOrder
       }
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/lots/:id - Delete a harvest lot from exchange
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const lot = await HarvestLot.findById(req.params.id);
+    if (!lot) {
+      return res.status(404).json({ success: false, error: 'Harvest lot not found' });
+    }
+    if (lot.awardedOrder) {
+      await Order.findByIdAndDelete(lot.awardedOrder);
+    }
+    await HarvestLot.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: `Lot '${lot.crop}' successfully removed from exchange.` });
   } catch (error) {
     next(error);
   }

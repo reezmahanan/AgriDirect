@@ -18,6 +18,7 @@ const harvestLotSchema = new mongoose.Schema({
     enum: ['vegetables', 'fruits', 'spices', 'tubers', 'grains'] 
   },
   variety: { type: String, default: 'Standard Harvest' },
+  imageUrl: { type: String, default: '' },
   quantityKg: { type: Number, required: true, min: 1 },
   basePricePerKg: { type: Number, required: true, min: 1 },
   currentHighestBid: { type: Number, default: 0 },

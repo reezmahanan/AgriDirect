@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const HarvestLot = require('../models/HarvestLot');
 
 // GET /api/orders - List all orders
 router.get('/', async (req, res, next) => {
@@ -52,6 +53,34 @@ router.patch('/:id/status', async (req, res, next) => {
 
     await order.save();
     res.json({ success: true, message: `Order status advanced to ${status}`, data: order });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/orders/:id - Cancel & remove exchange order, reopening harvest lot
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    // If order has an associated harvest lot, revert lot back to active bidding
+    if (order.lotId) {
+      await HarvestLot.findByIdAndUpdate(order.lotId, {
+        status: 'bidding_open',
+        awardedOrder: null
+      });
+    }
+
+    await Order.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: `Exchange contract #${order.trackingNumber} successfully removed. Associated harvest lot reopened on exchange.`,
+      orderId: req.params.id
+    });
   } catch (error) {
     next(error);
   }
