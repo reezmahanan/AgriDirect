@@ -257,6 +257,67 @@ router.post('/:id/award', async (req, res, next) => {
   }
 });
 
+// PUT /api/lots/:id - Farmer edits an existing harvest lot
+router.put('/:id', async (req, res, next) => {
+  try {
+    const lot = await HarvestLot.findById(req.params.id);
+    if (!lot) {
+      return res.status(404).json({ success: false, error: 'Harvest lot not found' });
+    }
+
+    if (lot.status === 'awarded') {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot edit lot: Deal has already been awarded and an order contract is in progress.'
+      });
+    }
+
+    const {
+      crop,
+      category,
+      variety,
+      quantityKg,
+      basePricePerKg,
+      specifications
+    } = req.body;
+
+    if (crop && crop.trim()) lot.crop = crop.trim();
+    if (category) lot.category = category.toLowerCase();
+    if (variety !== undefined) lot.variety = variety.trim();
+    if (quantityKg && !isNaN(Number(quantityKg))) lot.quantityKg = Number(quantityKg);
+    if (basePricePerKg && !isNaN(Number(basePricePerKg))) {
+      const newBase = Number(basePricePerKg);
+      lot.basePricePerKg = newBase;
+      if (!lot.bids || lot.bids.length === 0) {
+        lot.currentHighestBid = newBase;
+      }
+    }
+
+    if (specifications) {
+      if (!lot.specifications) lot.specifications = {};
+      if (specifications.grade) lot.specifications.grade = specifications.grade;
+      if (specifications.organicCertified !== undefined) {
+        lot.specifications.organicCertified = Boolean(specifications.organicCertified);
+      }
+      if (specifications.packaging !== undefined) {
+        lot.specifications.packaging = specifications.packaging;
+      }
+      if (specifications.description !== undefined) {
+        lot.specifications.description = specifications.description;
+      }
+    }
+
+    const updatedLot = await lot.save();
+    res.json({
+      success: true,
+      message: `Harvest lot '${updatedLot.crop}' updated successfully.`,
+      data: updatedLot
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // DELETE /api/lots/:id - Delete a harvest lot from exchange
 router.delete('/:id', async (req, res, next) => {
   try {

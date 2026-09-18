@@ -21,9 +21,11 @@ function getProduceImage(cropName, category, imageUrl) {
   if (lower.includes('banana')) return '/images/bananas.jpg';
   if (lower.includes('papaya')) return '/images/papaya.jpg';
   if (lower.includes('mango')) return '/images/papaya.jpg';
+  if (lower.includes('grain') || lower.includes('rice') || lower.includes('paddy') || lower.includes('samba') || lower.includes('corn') || lower.includes('maize') || lower.includes('wheat') || lower.includes('kurakkan')) return '/images/grains.jpg';
 
   const cat = (category || '').toLowerCase();
   if (cat === 'fruits') return '/images/bananas.jpg';
+  if (cat === 'grains') return '/images/grains.jpg';
   if (cat === 'spices') return '/images/chillies.jpg';
   if (cat === 'tubers') return '/images/potatoes.jpg';
   return '/images/leeks.jpg';
@@ -67,6 +69,7 @@ const bidModalOverlay = document.getElementById('bidModalOverlay');
 const postLotModalOverlay = document.getElementById('postLotModalOverlay');
 const awardModalOverlay = document.getElementById('awardModalOverlay');
 const ordersModalOverlay = document.getElementById('ordersModalOverlay');
+const editLotModalOverlay = document.getElementById('editLotModalOverlay');
 
 // Auth elements
 const userProfileBadge = document.getElementById('userProfileBadge');
@@ -210,8 +213,22 @@ function initEventHandlers() {
 
   document.getElementById('closeOrdersModal').addEventListener('click', () => closeModal(ordersModalOverlay));
 
+  // Edit Lot Modal Closers
+  document.getElementById('closeEditLotModal').addEventListener('click', () => closeModal(editLotModalOverlay));
+  document.getElementById('cancelEditLotBtn').addEventListener('click', () => closeModal(editLotModalOverlay));
+
+  // Edit Lot Form Submit
+  document.getElementById('editLotForm').addEventListener('submit', handleSaveEditLot);
+
+  // Delete from Edit Modal
+  document.getElementById('deleteFromEditBtn').addEventListener('click', () => {
+    const lotId = document.getElementById('editLotId').value;
+    const lot = lotsData.find(l => l._id === lotId);
+    handleDeleteLot(lotId, lot?.crop);
+  });
+
   // Close when clicking overlay backdrop
-  [authModalOverlay, bidModalOverlay, postLotModalOverlay, awardModalOverlay, ordersModalOverlay].forEach(overlay => {
+  [authModalOverlay, bidModalOverlay, postLotModalOverlay, awardModalOverlay, ordersModalOverlay, editLotModalOverlay].forEach(overlay => {
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) closeModal(overlay);
     });
@@ -569,14 +586,35 @@ function renderLotCard(lot) {
         <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><line x1='12' y1='1' x2='12' y2='23'/><path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/></svg> Place Commercial Bid
       </button>`;
     } else {
-      actionButton = `<button class="btn btn-primary lot-action-btn btn-review-award" data-id="${lot._id}">
-        <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg> Review Bids (${bidsCount})
-      </button>`;
+      actionButton = `
+      <div class="farmer-card-actions">
+        <button class="btn btn-sm btn-outline btn-edit-lot" data-id="${lot._id}" title="Edit harvest lot specifications">
+          <svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M12 20h9'/><path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z'/></svg> Edit
+        </button>
+        <button class="btn btn-sm btn-outline-danger btn-delete-lot" data-id="${lot._id}" data-crop="${lot.crop}" title="Remove lot from exchange">
+          <svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><polyline points='3 6 5 6 21 6'/><path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/></svg> Remove
+        </button>
+        <button class="btn btn-sm btn-primary lot-action-btn btn-review-award" data-id="${lot._id}">
+          <svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg> Review (${bidsCount})
+        </button>
+      </div>`;
     }
   } else {
-    actionButton = `<button class="btn btn-outline lot-action-btn btn-view-order-deal" data-order="${lot.awardedOrder || ''}">
-      <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><rect x='1' y='3' width='15' height='13'/><polygon points='16 8 20 8 23 11 23 16 16 16 16 8'/><circle cx='5.5' cy='18.5' r='2.5'/><circle cx='18.5' cy='18.5' r='2.5'/></svg> View Deal & Tracking
-    </button>`;
+    if (currentRole === 'farmer') {
+      actionButton = `
+      <div class="farmer-card-actions">
+        <button class="btn btn-sm btn-outline-danger btn-delete-lot" data-id="${lot._id}" data-crop="${lot.crop}" title="Remove lot and cancel contract">
+          <svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><polyline points='3 6 5 6 21 6'/><path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/></svg> Remove
+        </button>
+        <button class="btn btn-sm btn-outline lot-action-btn btn-view-order-deal" data-order="${lot.awardedOrder || ''}">
+          <svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><rect x='1' y='3' width='15' height='13'/><polygon points='16 8 20 8 23 11 23 16 16 16 16 8'/><circle cx='5.5' cy='18.5' r='2.5'/><circle cx='18.5' cy='18.5' r='2.5'/></svg> View Deal
+        </button>
+      </div>`;
+    } else {
+      actionButton = `<button class="btn btn-outline lot-action-btn btn-view-order-deal" data-order="${lot.awardedOrder || ''}">
+        <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><rect x='1' y='3' width='15' height='13'/><polygon points='16 8 20 8 23 11 23 16 16 16 8'/><circle cx='5.5' cy='18.5' r='2.5'/><circle cx='18.5' cy='18.5' r='2.5'/></svg> View Deal & Tracking
+      </button>`;
+    }
   }
 
   return `
@@ -629,7 +667,7 @@ function renderLotCard(lot) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
           <span>${bidsCount} Bids Placed</span>
         </div>
-        <div style="flex: 1; max-width: 210px;">
+        <div style="flex: 1; max-width: ${currentRole === 'farmer' ? '280px' : '210px'};">
           ${actionButton}
         </div>
       </div>
@@ -645,6 +683,14 @@ function attachCardEvents() {
 
   document.querySelectorAll('.btn-review-award').forEach(btn => {
     btn.addEventListener('click', () => openAwardModal(btn.dataset.id));
+  });
+
+  document.querySelectorAll('.btn-edit-lot').forEach(btn => {
+    btn.addEventListener('click', () => openEditLotModal(btn.dataset.id));
+  });
+
+  document.querySelectorAll('.btn-delete-lot').forEach(btn => {
+    btn.addEventListener('click', () => handleDeleteLot(btn.dataset.id, btn.dataset.crop));
   });
 
   document.querySelectorAll('.btn-view-order-deal').forEach(btn => {
@@ -835,7 +881,7 @@ function openAwardModal(lotId) {
 
   document.getElementById('awardLotId').value = lot._id;
   document.getElementById('awardLotCropName').textContent = lot.crop;
-  document.getElementById('awardLotQuantity').textContent = `Variety: ${lot.variety} • Total: ${Number(lot.quantityKg).toLocaleString()} kg`;
+  document.getElementById('awardLotQuantity').textContent = `Variety: ${lot.variety || 'Standard'} • Total: ${Number(lot.quantityKg).toLocaleString()} kg`;
 
   const topPrice = lot.currentHighestBid || lot.basePricePerKg;
   const totalVal = Math.round(topPrice * lot.quantityKg);
@@ -847,12 +893,32 @@ function openAwardModal(lotId) {
 
   const sortedBids = [...bids].sort((a, b) => b.offeredPricePerKg - a.offeredPricePerKg);
   const bidsListEl = document.getElementById('awardBidsList');
+  const confirmAwardBtn = document.getElementById('confirmAwardBtn');
+  const deleteFromAwardBtn = document.getElementById('deleteFromAwardBtn');
+
+  if (deleteFromAwardBtn) {
+    deleteFromAwardBtn.onclick = () => handleDeleteLot(lot._id, lot.crop);
+  }
 
   if (sortedBids.length === 0) {
-    bidsListEl.innerHTML = `<div style="padding: 18px; text-align: center; color: #64748b;">No bids placed on this lot yet.</div>`;
-    document.getElementById('confirmAwardBtn').disabled = true;
+    bidsListEl.innerHTML = `
+      <div class="no-bids-notice">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" style="margin-bottom: 8px;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <p style="font-weight: 700; color: #475569; margin-bottom: 4px;">No Commercial Bids Placed Yet</p>
+        <p style="font-size: 0.82rem; color: #64748b; max-width: 360px; margin: 0 auto; line-height: 1.4;">
+          Commercial buyers must place competing bids before you can award an escrow contract. Switch to Buyer Mode to submit an offer or wait for commercial buyers to bid.
+        </p>
+      </div>`;
+    confirmAwardBtn.disabled = true;
+    confirmAwardBtn.textContent = 'Cannot Award — Awaiting Buyer Bids (0 Bids)';
   } else {
-    document.getElementById('confirmAwardBtn').disabled = false;
+    confirmAwardBtn.disabled = false;
+    const topBid = sortedBids[0];
+    confirmAwardBtn.textContent = `Accept Highest Bid (Rs. ${topBid.offeredPricePerKg}/kg) & Award Contract`;
     bidsListEl.innerHTML = sortedBids.map((b, idx) => `
       <div class="bid-row-item ${idx === 0 ? 'winning' : ''}">
         <div style="display: flex; align-items: center;">
@@ -904,6 +970,104 @@ async function handleAwardDeal() {
   } finally {
     awardBtn.disabled = false;
     awardBtn.textContent = 'Accept Highest Bid & Award Contract';
+  }
+}
+
+// Open Edit Lot Modal (Farmer)
+let activeEditLot = null;
+function openEditLotModal(lotId) {
+  const lot = lotsData.find(l => l._id === lotId);
+  if (!lot) return;
+  activeEditLot = lot;
+
+  document.getElementById('editLotId').value = lot._id;
+  document.getElementById('editLotCrop').value = lot.crop;
+  document.getElementById('editLotCategory').value = lot.category;
+  document.getElementById('editLotVariety').value = lot.variety || '';
+  document.getElementById('editLotQuantity').value = lot.quantityKg;
+  document.getElementById('editLotBasePrice').value = lot.basePricePerKg;
+  document.getElementById('editLotGrade').value = lot.specifications?.grade || 'Grade A Premium Export Quality';
+  document.getElementById('editLotPackaging').value = lot.specifications?.packaging || '';
+  document.getElementById('editLotOrganic').checked = Boolean(lot.specifications?.organicCertified);
+  document.getElementById('editLotDescription').value = lot.specifications?.description || '';
+
+  openModal(editLotModalOverlay);
+}
+
+// Handle Save Edit Lot
+async function handleSaveEditLot(e) {
+  e.preventDefault();
+  const lotId = document.getElementById('editLotId').value;
+  const crop = document.getElementById('editLotCrop').value.trim();
+  const category = document.getElementById('editLotCategory').value;
+  const variety = document.getElementById('editLotVariety').value.trim();
+  const quantityKg = Number(document.getElementById('editLotQuantity').value);
+  const basePricePerKg = Number(document.getElementById('editLotBasePrice').value);
+  const grade = document.getElementById('editLotGrade').value;
+  const packaging = document.getElementById('editLotPackaging').value.trim();
+  const organicCertified = document.getElementById('editLotOrganic').checked;
+  const description = document.getElementById('editLotDescription').value.trim();
+
+  const saveBtn = document.getElementById('saveEditLotBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving Changes...';
+
+  try {
+    const res = await fetch(`/api/lots/${lotId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        crop,
+        category,
+        variety,
+        quantityKg,
+        basePricePerKg,
+        specifications: { grade, packaging, organicCertified, description }
+      })
+    });
+    const json = await res.json();
+    if (res.ok && json.success) {
+      showToast(`Lot '${crop}' updated successfully!`);
+      closeModal(editLotModalOverlay);
+      await loadLots();
+      await loadDashboardStats();
+    } else {
+      showToast(json.error || 'Failed to update harvest lot.', 'error');
+    }
+  } catch (err) {
+    showToast('Error updating lot. Please retry.', 'error');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Changes';
+  }
+}
+
+// Handle Delete / Remove Lot
+async function handleDeleteLot(lotId, cropName) {
+  const confirmed = confirm(`Are you sure you want to remove '${cropName || 'this lot'}' from the exchange? This action cannot be undone.`);
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch(`/api/lots/${lotId}`, {
+      method: 'DELETE'
+    });
+    const json = await res.json();
+    if (res.ok && json.success) {
+      showToast(json.message || `Lot '${cropName || ''}' successfully removed from exchange!`);
+      if (editLotModalOverlay && editLotModalOverlay.classList.contains('active')) {
+        closeModal(editLotModalOverlay);
+      }
+      if (awardModalOverlay && awardModalOverlay.classList.contains('active')) {
+        closeModal(awardModalOverlay);
+      }
+      await loadLots();
+      await loadDashboardStats();
+      await loadOrders();
+    } else {
+      showToast(json.error || 'Failed to remove lot.', 'error');
+    }
+  } catch (err) {
+    showToast('Error removing lot. Please retry.', 'error');
   }
 }
 

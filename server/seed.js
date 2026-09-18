@@ -152,6 +152,14 @@ const seedData = async () => {
         manningWholesalePrice: 2650,
         supermarketRetailAvg: 3400,
         trend: 'up'
+      },
+      {
+        crop: 'Polonnaruwa Keeri Samba Rice',
+        category: 'grains',
+        dambullaWholesalePrice: 240,
+        manningWholesalePrice: 265,
+        supermarketRetailAvg: 340,
+        trend: 'up'
       }
     ]);
     console.log(`[AgriDirect Seeder] Seeded ${marketPrices.length} Wholesale Benchmark Indexes.`);
@@ -470,6 +478,95 @@ const seedData = async () => {
             offeredPricePerKg: 170,
             totalBidAmount: 170 * 1600,
             notes: 'Direct supermarket fresh counter procurement.',
+            placedAt: new Date(Date.now() - 2 * 3600 * 1000)
+          }
+        ]
+      },
+      {
+        crop: 'Polonnaruwa Golden Keeri Samba Rice',
+        category: 'grains',
+        variety: 'BG 360 Parboiled Whole Grain',
+        imageUrl: '/images/grains.jpg',
+        quantityKg: 4500,
+        basePricePerKg: 230,
+        currentHighestBid: 255,
+        highestBidderName: buyerKeells.name,
+        highestBidderOrg: buyerKeells.organization,
+        highestBidderId: buyerKeells._id,
+        status: 'bidding_open',
+        harvestDate: new Date(),
+        biddingDeadline: new Date(Date.now() + 48 * 3600 * 1000),
+        farmer: {
+          farmerId: farmer4._id,
+          name: farmer4.name,
+          farmName: 'Rajarata Agri Mills & Paddy Farms',
+          district: 'Polonnaruwa',
+          village: 'Hingurakgoda',
+          phone: farmer4.phone
+        },
+        specifications: {
+          grade: 'Grade A Polished Premium Grain',
+          organicCertified: true,
+          packaging: '50kg Moisture-Proof Poly-Woven Sacks',
+          description: 'Freshly harvested prime keeri samba paddy milled under hygienic conditions. Moisture under 12%, broken grains under 2%.'
+        },
+        bids: [
+          {
+            bidderId: buyerCargills._id,
+            bidderName: buyerCargills.name,
+            buyerOrganization: buyerCargills.organization,
+            offeredPricePerKg: 245,
+            totalBidAmount: 245 * 4500,
+            notes: 'Wholesale batch acquisition for dry goods supply.',
+            placedAt: new Date(Date.now() - 4 * 3600 * 1000)
+          },
+          {
+            bidderId: buyerKeells._id,
+            bidderName: buyerKeells.name,
+            buyerOrganization: buyerKeells.organization,
+            offeredPricePerKg: 255,
+            totalBidAmount: 255 * 4500,
+            notes: 'Central logistics procurement for island-wide retail supermarket shelves.',
+            placedAt: new Date(Date.now() - 1 * 3600 * 1000)
+          }
+        ]
+      },
+      {
+        crop: 'Ampara Traditional Red Raw Rice',
+        category: 'grains',
+        variety: 'Suwandel Traditional Heirloom',
+        imageUrl: '/images/grains.jpg',
+        quantityKg: 3000,
+        basePricePerKg: 250,
+        currentHighestBid: 280,
+        highestBidderName: buyerHilton.name,
+        highestBidderOrg: buyerHilton.organization,
+        highestBidderId: buyerHilton._id,
+        status: 'bidding_open',
+        harvestDate: new Date(),
+        biddingDeadline: new Date(Date.now() + 36 * 3600 * 1000),
+        farmer: {
+          farmerId: farmer2._id,
+          name: farmer2.name,
+          farmName: 'Eastern Organic Rice Producers',
+          district: 'Ampara',
+          village: 'Uhana',
+          phone: farmer2.phone
+        },
+        specifications: {
+          grade: 'Premium Unpolished Red Grain',
+          organicCertified: true,
+          packaging: '25kg Eco Burlap Sacks',
+          description: 'Nutrient-rich traditional unpolished red raw rice, high dietary fiber and antioxidants. Cleaned with optical color sorters.'
+        },
+        bids: [
+          {
+            bidderId: buyerHilton._id,
+            bidderName: buyerHilton.name,
+            buyerOrganization: buyerHilton.organization,
+            offeredPricePerKg: 280,
+            totalBidAmount: 280 * 3000,
+            notes: 'Heirloom rice selection for luxury dining buffet.',
             placedAt: new Date(Date.now() - 2 * 3600 * 1000)
           }
         ]

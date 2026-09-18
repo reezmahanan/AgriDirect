@@ -297,6 +297,48 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-outline-danger {
+  background: var(--white);
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.btn-outline-danger:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+  color: #b91c1c;
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.48 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  filter: grayscale(0.6);
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.farmer-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.farmer-card-actions .lot-action-btn {
+  flex: 1;
+}
+
+.no-bids-notice {
+  padding: 24px 16px;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-md);
+  margin: 10px 0;
+}
+
 .nav-orders-btn {
   white-space: nowrap !important;
   display: inline-flex !important;
