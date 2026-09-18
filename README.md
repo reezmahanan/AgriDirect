@@ -124,18 +124,24 @@ AgriDirect/
 - **Node.js** (v18+ recommended)
 - **MongoDB** running locally on default port `27017`
 
-### 1. Install Dependencies
+### 1. Clone the Repository
+```bash
+git clone https://github.com/reezmahanan/AgriDirect.git
+cd AgriDirect
+```
+
+### 2. Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Seed Sample Database
+### 3. Seed Sample Database
 Populates 7 agricultural users, 7 wholesale market benchmark indices, active harvest lots with bids, and an active logistics shipment:
 ```bash
 npm run seed
 ```
 
-### 3. Launch the Unified Server
+### 4. Launch the Unified Server
 ```bash
 npm start
 ```
