@@ -5,8 +5,13 @@ const path = require('path');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
-// Initialize database
-connectDB();
+// Initialize database & auto-seed if empty
+connectDB().then(async () => {
+  const { autoSeedIfEmpty } = require('./seed');
+  await autoSeedIfEmpty();
+}).catch(err => {
+  console.error('[AgriDirect] Database connection warning:', err.message);
+});
 
 const app = express();
 

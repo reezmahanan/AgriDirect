@@ -5,18 +5,22 @@ const HarvestLot = require('./models/HarvestLot');
 const MarketPrice = require('./models/MarketPrice');
 const Order = require('./models/Order');
 
-const seedData = async () => {
+const seedData = async (options = { exitOnComplete: true, clearExisting: true }) => {
   try {
-    const connUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/agridirect_db';
-    await mongoose.connect(connUri);
-    console.log('[AgriDirect Seeder] Connected to MongoDB.');
+    if (mongoose.connection.readyState === 0) {
+      const connUri = process.env.MONGO_URI || process.env.MONGODB_URI || process.env.MONGO_URL || process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017/agridirect_db';
+      await mongoose.connect(connUri);
+      console.log('[AgriDirect Seeder] Connected to MongoDB.');
+    }
 
-    // Clear existing collections
-    await User.deleteMany({});
-    await HarvestLot.deleteMany({});
-    await MarketPrice.deleteMany({});
-    await Order.deleteMany({});
-    console.log('[AgriDirect Seeder] Cleared old collections.');
+    if (options.clearExisting !== false) {
+      // Clear existing collections
+      await User.deleteMany({});
+      await HarvestLot.deleteMany({});
+      await MarketPrice.deleteMany({});
+      await Order.deleteMany({});
+      console.log('[AgriDirect Seeder] Cleared old collections.');
+    }
 
     const defaultPasswordHash = User.hashPassword('password123');
 
@@ -652,11 +656,32 @@ const seedData = async () => {
 
     console.log('[AgriDirect Seeder] Seeded 1 in-transit Order (#AGRI-EXP-77291).');
     console.log('[AgriDirect Seeder] Database population completed successfully!');
-    process.exit(0);
+    if (options.exitOnComplete !== false) {
+      process.exit(0);
+    }
   } catch (err) {
     console.error('[AgriDirect Seeder Error]:', err);
-    process.exit(1);
+    if (options.exitOnComplete !== false) {
+      process.exit(1);
+    }
+    throw err;
   }
 };
 
-seedData();
+const autoSeedIfEmpty = async () => {
+  try {
+    const lotCount = await HarvestLot.countDocuments();
+    if (lotCount === 0) {
+      console.log('[AgriDirect] Empty database detected. Auto-seeding initial harvest lots and market prices...');
+      await seedData({ exitOnComplete: false, clearExisting: false });
+    }
+  } catch (err) {
+    console.warn('[AgriDirect] Auto-seed warning:', err.message);
+  }
+};
+
+if (require.main === module) {
+  seedData({ exitOnComplete: true, clearExisting: true });
+}
+
+module.exports = { seedData, autoSeedIfEmpty };
