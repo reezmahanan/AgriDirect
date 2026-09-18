@@ -1,28 +1,32 @@
 
-// Produce Image Fallback Catalog
+// Produce Image Verified Local Catalog
 function getProduceImage(cropName, category, imageUrl) {
-  if (imageUrl && imageUrl.trim().startsWith('http')) {
-    return imageUrl;
+  if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim().length > 0) {
+    const trimmed = imageUrl.trim();
+    if (!trimmed.includes('photo-1615485500704') && 
+        !trimmed.includes('photo-1596547609652') && 
+        !trimmed.includes('photo-1598170845058') && 
+        !trimmed.includes('photo-1619566636858')) {
+      return trimmed;
+    }
   }
-  const lower = (cropName || '').toLowerCase();
-  if (lower.includes('leek')) return 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=600&auto=format&fit=crop&q=80';
-  if (lower.includes('onion')) return 'https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?w=600&auto=format&fit=crop&q=80';
-  if (lower.includes('chilli') || lower.includes('chili') || lower.includes('pepper')) {
-    if (lower.includes('black pepper')) return 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=600&auto=format&fit=crop&q=80';
-    return 'https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?w=600&auto=format&fit=crop&q=80';
-  }
-  if (lower.includes('potato')) return 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop&q=80';
-  if (lower.includes('carrot')) return 'https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?w=600&auto=format&fit=crop&q=80';
-  if (lower.includes('cabbage')) return 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=600&auto=format&fit=crop&q=80';
-  if (lower.includes('banana')) return 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&auto=format&fit=crop&q=80';
-  if (lower.includes('tomato')) return 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&auto=format&fit=crop&q=80';
 
-  // Category fallbacks
+  const lower = (cropName || '').toLowerCase();
+  if (lower.includes('leek')) return '/images/leeks.jpg';
+  if (lower.includes('carrot')) return '/images/carrots.jpg';
+  if (lower.includes('chilli') || lower.includes('chili')) return '/images/chillies.jpg';
+  if (lower.includes('black pepper') || lower.includes('pepper')) return '/images/pepper.jpg';
+  if (lower.includes('onion')) return '/images/onions.jpg';
+  if (lower.includes('potato')) return '/images/potatoes.jpg';
+  if (lower.includes('banana')) return '/images/bananas.jpg';
+  if (lower.includes('papaya')) return '/images/papaya.jpg';
+  if (lower.includes('mango')) return '/images/papaya.jpg';
+
   const cat = (category || '').toLowerCase();
-  if (cat === 'fruits') return 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop&q=80';
-  if (cat === 'spices') return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80';
-  if (cat === 'tubers') return 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop&q=80';
-  return 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80';
+  if (cat === 'fruits') return '/images/bananas.jpg';
+  if (cat === 'spices') return '/images/chillies.jpg';
+  if (cat === 'tubers') return '/images/potatoes.jpg';
+  return '/images/leeks.jpg';
 }
 
 // AgriDirect B2B Exchange Client Application
