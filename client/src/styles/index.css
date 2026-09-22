@@ -1791,10 +1791,45 @@ select:focus,
 .demo-credentials-box {
   background: #f8fafc;
   border: 1px dashed var(--slate-300);
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-radius: var(--radius-md);
-  margin-top: 12px;
+  margin-top: 14px;
   color: var(--slate-600);
+}
+
+.demo-title {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--slate-700);
+  margin-bottom: 8px;
+}
+
+.demo-quick-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-demo-pill {
+  flex: 1;
+  background: var(--white);
+  border: 1px solid var(--slate-300);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--slate-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btn-demo-pill:hover {
+  background: #ecfdf5;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .signed-in-bidder-box {

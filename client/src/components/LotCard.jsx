@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, User, CheckCircle2, Flame, Award, Edit3, Trash2 } from 'lucide-react';
+import { MapPin, User, CheckCircle2, Flame, Award, Edit3, Trash2, LogIn } from 'lucide-react';
 import { getProduceImage } from '../utils/imageHelper';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,7 +10,7 @@ export default function LotCard({
   onOpenEdit,
   onDeleteLot
 }) {
-  const { currentRole } = useAuth();
+  const { currentUser, currentRole } = useAuth();
 
   if (!lot) return null;
 
@@ -123,6 +123,15 @@ export default function LotCard({
               <button className="btn btn-disabled w-full" disabled type="button">
                 <CheckCircle2 size={16} /> Deal Closed & Awarded
               </button>
+            ) : !currentUser ? (
+              <button
+                className="btn btn-primary w-full btn-bid-action"
+                onClick={() => onOpenBid(lot)}
+                type="button"
+                title="Sign in or register to place commercial bids"
+              >
+                <LogIn size={15} /> Sign In to Place Bid
+              </button>
             ) : (
               <button
                 className="btn btn-primary w-full btn-bid-action"
@@ -135,33 +144,46 @@ export default function LotCard({
           ) : (
             // Farmer Hub Actions
             <div className="farmer-action-group">
-              <button
-                className="btn btn-primary btn-award-action"
-                onClick={() => onOpenAward(lot)}
-                type="button"
-              >
-                <Award size={15} /> Review & Award
-              </button>
+              {!currentUser ? (
+                <button
+                  className="btn btn-primary w-full btn-award-action"
+                  onClick={() => onOpenAward(lot)}
+                  type="button"
+                  title="Sign in as farmer to review and award bids"
+                >
+                  <LogIn size={15} /> Sign In as Farmer to Award
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="btn btn-primary btn-award-action"
+                    onClick={() => onOpenAward(lot)}
+                    type="button"
+                  >
+                    <Award size={15} /> Review & Award
+                  </button>
 
-              {!isAwarded && (
-                <div className="lot-manage-actions">
-                  <button
-                    className="btn btn-icon btn-edit"
-                    onClick={() => onOpenEdit(lot)}
-                    title="Edit Lot Specs"
-                    type="button"
-                  >
-                    <Edit3 size={15} />
-                  </button>
-                  <button
-                    className="btn btn-icon btn-delete"
-                    onClick={() => onDeleteLot(lot)}
-                    title="Remove Harvest Lot"
-                    type="button"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+                  {!isAwarded && (
+                    <div className="lot-manage-actions">
+                      <button
+                        className="btn btn-icon btn-edit"
+                        onClick={() => onOpenEdit(lot)}
+                        title="Edit Lot Specs"
+                        type="button"
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                      <button
+                        className="btn btn-icon btn-delete"
+                        onClick={() => onDeleteLot(lot)}
+                        title="Remove Harvest Lot"
+                        type="button"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

@@ -61,6 +61,12 @@ export default function BiddingModal({ isOpen, onClose, lot, onBidSuccess, showT
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      showToast('🔒 Please sign in or register to place commercial bids.', 'error');
+      onClose();
+      return;
+    }
+
     if (Number(bidPrice) < minBid) {
       showToast(`Bid must be at least Rs. ${minBid} / kg!`, 'error');
       return;
@@ -70,10 +76,11 @@ export default function BiddingModal({ isOpen, onClose, lot, onBidSuccess, showT
     try {
       await api.placeBid(lot._id, {
         bidPricePerKg: Number(bidPrice),
+        bidderId: currentUser._id,
         buyer: {
-          name: buyerName,
-          organization: buyerOrg,
-          phone: buyerPhone,
+          name: currentUser.name || buyerName,
+          organization: currentUser.organization || buyerOrg,
+          phone: currentUser.phone || buyerPhone,
           notes: buyerNotes
         }
       });

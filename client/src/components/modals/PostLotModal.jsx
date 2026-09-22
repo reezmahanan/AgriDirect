@@ -30,6 +30,17 @@ export default function PostLotModal({ isOpen, onClose, onSuccess, showToast }) 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      showToast('🔒 Please sign in as a farmer to list harvest lots.', 'error');
+      onClose();
+      return;
+    }
+
+    if (currentUser.role !== 'farmer') {
+      showToast('⚠️ Only registered farmers can list harvest lots on the exchange.', 'error');
+      return;
+    }
+
     if (!crop || !quantityKg || !reservePricePerKg) {
       showToast('Please fill in all required harvest details.', 'error');
       return;
@@ -50,11 +61,12 @@ export default function PostLotModal({ isOpen, onClose, onSuccess, showToast }) 
           cityOrVillage
         },
         farmer: {
-          name: currentUser?.name || 'Local Farmer',
-          organization: currentUser?.organization || 'Hill Country Farm Co.',
+          name: currentUser.name,
+          organization: currentUser.organization || 'Local Farmer Estate',
           district,
           village: cityOrVillage,
-          phone: currentUser?.phone || '+94 77 123 4567'
+          phone: currentUser.phone || '+94 77 123 4567',
+          farmerId: currentUser._id
         }
       });
       showToast(`Harvest lot for ${crop} published to the exchange!`, 'success');

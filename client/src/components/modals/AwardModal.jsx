@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X, Award, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { api } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AwardModal({ isOpen, onClose, lot, onSuccess, showToast }) {
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedBidId, setSelectedBidId] = useState(null);
   const [farmerNotes, setFarmerNotes] = useState('');
@@ -32,6 +34,17 @@ export default function AwardModal({ isOpen, onClose, lot, onSuccess, showToast 
   const totalContractVal = Math.round(currentPrice * (lot.quantityKg || 0));
 
   const handleAward = async () => {
+    if (!currentUser) {
+      showToast('🔒 You must be signed in as a farmer to award contracts.', 'error');
+      onClose();
+      return;
+    }
+
+    if (currentUser.role !== 'farmer') {
+      showToast('⚠️ Only registered farmers can award contracts.', 'error');
+      return;
+    }
+
     if (!currentSelected) {
       showToast('No bid selected to award.', 'error');
       return;

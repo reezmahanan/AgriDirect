@@ -131,11 +131,29 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', showT
             </div>
 
             <div className="demo-credentials-box">
-              <span className="demo-title">Demo Accounts (Password: <code>password123</code>):</span>
-              <ul>
-                <li>👨‍🌾 Farmer: <code>sunil@farmer.lk</code></li>
-                <li>🛍️ Supermarket Buyer: <code>procurement@keells.lk</code></li>
-              </ul>
+              <span className="demo-title">⚡ 1-Click Demo Accounts (Password: <code>password123</code>):</span>
+              <div className="demo-quick-row">
+                <button
+                  type="button"
+                  className="btn-demo-pill"
+                  onClick={() => {
+                    setLoginEmail('sunil@farmer.lk');
+                    setLoginPassword('password123');
+                  }}
+                >
+                  👨‍🌾 Fill Sunil (Farmer)
+                </button>
+                <button
+                  type="button"
+                  className="btn-demo-pill"
+                  onClick={() => {
+                    setLoginEmail('samantha@keells.lk');
+                    setLoginPassword('password123');
+                  }}
+                >
+                  🛍️ Fill Samantha (Keells Buyer)
+                </button>
+              </div>
             </div>
 
             <div className="modal-footer">

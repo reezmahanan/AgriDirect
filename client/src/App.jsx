@@ -17,7 +17,7 @@ import { api } from './services/api';
 import { useAuth } from './context/AuthContext';
 
 export default function App() {
-  const { currentRole } = useAuth();
+  const { currentUser, currentRole } = useAuth();
 
   // Data states
   const [lots, setLots] = useState([]);
@@ -140,8 +140,58 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [loadLots]);
 
+  // Guarded actions: Only signed in / registered users can add bids, post lots, or award deals
+  const handleOpenBid = (lot) => {
+    if (!currentUser) {
+      showToast('🔒 Please sign in or register to place commercial bids.', 'info');
+      setAuthModal({ open: true, tab: 'login' });
+      return;
+    }
+    setBidModal({ open: true, lot });
+  };
+
+  const handleOpenPostLot = () => {
+    if (!currentUser) {
+      showToast('🔒 Please sign in or register as a farmer to list harvest lots.', 'info');
+      setAuthModal({ open: true, tab: 'login' });
+      return;
+    }
+    if (currentUser.role !== 'farmer') {
+      showToast('⚠️ Only registered farmers can list harvest lots on the exchange.', 'error');
+      return;
+    }
+    setPostLotModalOpen(true);
+  };
+
+  const handleOpenAward = (lot) => {
+    if (!currentUser) {
+      showToast('🔒 Please sign in as a farmer to review and award bids.', 'info');
+      setAuthModal({ open: true, tab: 'login' });
+      return;
+    }
+    if (currentUser.role !== 'farmer') {
+      showToast('⚠️ Only farmers can review and award contracts.', 'error');
+      return;
+    }
+    setAwardModal({ open: true, lot });
+  };
+
+  const handleOpenEdit = (lot) => {
+    if (!currentUser) {
+      showToast('🔒 Please sign in to edit harvest lots.', 'info');
+      setAuthModal({ open: true, tab: 'login' });
+      return;
+    }
+    setEditModal({ open: true, lot });
+  };
+
   // Handle Lot Delete
   const handleDeleteLot = async (lot) => {
+    if (!currentUser) {
+      showToast('🔒 Please sign in to remove harvest listings.', 'info');
+      setAuthModal({ open: true, tab: 'login' });
+      return;
+    }
     if (!window.confirm(`Are you sure you want to remove the harvest listing for "${lot.crop}"?`)) {
       return;
     }
@@ -166,7 +216,7 @@ export default function App() {
       {/* 2. Main Navigation Bar */}
       <Navbar
         onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-        onOpenPostLot={() => setPostLotModalOpen(true)}
+        onOpenPostLot={handleOpenPostLot}
         onOpenOrders={() => setOrdersModalOpen(true)}
         ordersCount={orders.length}
       />
@@ -190,9 +240,9 @@ export default function App() {
         <LotsGrid
           lots={lots}
           loading={loadingLots}
-          onOpenBid={(lot) => setBidModal({ open: true, lot })}
-          onOpenAward={(lot) => setAwardModal({ open: true, lot })}
-          onOpenEdit={(lot) => setEditModal({ open: true, lot })}
+          onOpenBid={handleOpenBid}
+          onOpenAward={handleOpenAward}
+          onOpenEdit={handleOpenEdit}
           onDeleteLot={handleDeleteLot}
         />
       </main>
