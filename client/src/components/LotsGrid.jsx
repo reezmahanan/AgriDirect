@@ -11,13 +11,14 @@ export default function LotsGrid({
   onDeleteLot
 }) {
   const { currentRole } = useAuth();
+  const safeLots = Array.isArray(lots) ? lots : [];
 
   return (
     <div className="lots-container">
       <div className="lots-header">
         <div className="lots-title-block">
           <h3>Live Harvest Exchange Lots</h3>
-          <span className="lots-count">Showing {lots.length} lots</span>
+          <span className="lots-count">Showing {safeLots.length} lots</span>
         </div>
 
         {currentRole === 'farmer' && (
@@ -34,14 +35,14 @@ export default function LotsGrid({
           <div className="spinner"></div>
           <p>Loading active exchange lots from MongoDB...</p>
         </div>
-      ) : lots.length === 0 ? (
+      ) : safeLots.length === 0 ? (
         <div className="empty-state">
           <h4>No Harvest Lots Found</h4>
           <p>Try clearing your category filter or search query to view more lots.</p>
         </div>
       ) : (
         <div className="lots-grid">
-          {lots.map((lot) => (
+          {safeLots.map((lot) => (
             <LotCard
               key={lot._id}
               lot={lot}

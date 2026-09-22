@@ -8,40 +8,72 @@ export const api = {
     if (params.category && params.category !== 'all') query.append('category', params.category);
     if (params.status && params.status !== 'all') query.append('status', params.status);
     if (params.search) query.append('search', params.search);
-    if (params.sort) query.append('sort', params.sort);
+    if (params.sort) query.append('sortBy', params.sort);
 
     const url = `${API_BASE}/lots${query.toString() ? `?${query.toString()}` : ''}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch harvest lots');
-    return res.json();
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
   },
 
   async getLotById(id) {
     const res = await fetch(`${API_BASE}/lots/${id}`);
     if (!res.ok) throw new Error('Failed to fetch lot details');
-    return res.json();
+    const json = await res.json();
+    return json.data || json;
   },
 
   async createLot(lotData) {
+    const payload = {
+      crop: lotData.crop,
+      category: lotData.category,
+      quantityKg: Number(lotData.quantityKg),
+      basePricePerKg: Number(lotData.basePricePerKg || lotData.reservePricePerKg),
+      variety: lotData.variety || 'Fresh Morning Harvest',
+      farmer: {
+        name: lotData.farmer?.name || 'Local Farmer',
+        farmName: lotData.farmer?.organization || lotData.farmer?.farmName || 'Estate Harvest Co.',
+        district: lotData.location?.district || lotData.farmer?.district || 'Nuwara Eliya',
+        village: lotData.location?.cityOrVillage || 'Farm Gate',
+        phone: lotData.farmer?.phone || '+94 77 123 4567'
+      },
+      specifications: {
+        grade: lotData.qualityGrade || lotData.specifications?.grade || 'Grade A Premium',
+        organicCertified: Boolean(lotData.isOrganic || lotData.specifications?.organicCertified),
+        packaging: lotData.packagingSpecs || lotData.specifications?.packaging || 'Standard Crates'
+      }
+    };
+
     const res = await fetch(`${API_BASE}/lots`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(lotData)
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to list harvest lot');
-    return data;
+    if (!res.ok) throw new Error(data.message || data.error || (data.errors && data.errors[0]) || 'Failed to list harvest lot');
+    return data.data || data;
   },
 
   async updateLot(id, lotData) {
+    const payload = {
+      quantityKg: Number(lotData.quantityKg),
+      basePricePerKg: Number(lotData.basePricePerKg || lotData.reservePricePerKg),
+      specifications: {
+        grade: lotData.qualityGrade || 'Grade A Premium',
+        organicCertified: Boolean(lotData.isOrganic),
+        packaging: lotData.packagingSpecs || 'Standard Crates'
+      }
+    };
+
     const res = await fetch(`${API_BASE}/lots/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(lotData)
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to update harvest lot');
-    return data;
+    if (!res.ok) throw new Error(data.message || data.error || 'Failed to update harvest lot');
+    return data.data || data;
   },
 
   async deleteLot(id) {
@@ -49,19 +81,26 @@ export const api = {
       method: 'DELETE'
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to remove harvest lot');
+    if (!res.ok) throw new Error(data.message || data.error || 'Failed to remove harvest lot');
     return data;
   },
 
   async placeBid(lotId, bidData) {
+    const payload = {
+      offeredPricePerKg: Number(bidData.bidPricePerKg || bidData.offeredPricePerKg),
+      bidderName: bidData.buyer?.name || bidData.bidderName || 'Commercial Buyer',
+      buyerOrganization: bidData.buyer?.organization || bidData.buyerOrganization || 'Procurement Group',
+      notes: bidData.buyer?.notes || bidData.notes || ''
+    };
+
     const res = await fetch(`${API_BASE}/lots/${lotId}/bids`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(bidData)
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to place commercial bid');
-    return data;
+    if (!res.ok) throw new Error(data.message || data.error || (data.errors && data.errors[0]) || 'Failed to place commercial bid');
+    return data.data || data;
   },
 
   async awardLot(lotId, awardData) {
@@ -71,35 +110,38 @@ export const api = {
       body: JSON.stringify(awardData)
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to award contract');
-    return data;
+    if (!res.ok) throw new Error(data.message || data.error || 'Failed to award contract');
+    return data.data || data;
   },
 
   // --- MARKET PRICES & STATS ---
   async getMarketPrices() {
     const res = await fetch(`${API_BASE}/market-prices`);
     if (!res.ok) throw new Error('Failed to fetch wholesale benchmark prices');
-    return res.json();
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
   },
 
   async getKPIStats() {
     const res = await fetch(`${API_BASE}/market-prices/stats`);
     if (!res.ok) throw new Error('Failed to fetch dashboard stats');
-    return res.json();
+    const json = await res.json();
+    return json.data || json;
   },
 
   // --- ORDERS & SHIPMENTS ---
   async getOrders() {
     const res = await fetch(`${API_BASE}/orders`);
     if (!res.ok) throw new Error('Failed to fetch orders');
-    return res.json();
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
   },
 
   async getOrderByTracking(trackingNumber) {
     const res = await fetch(`${API_BASE}/orders/${trackingNumber}`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Order not found');
-    return data;
+    if (!res.ok) throw new Error(data.message || data.error || 'Order not found');
+    return data.data || data;
   },
 
   async updateOrderStatus(id, status) {
@@ -109,8 +151,8 @@ export const api = {
       body: JSON.stringify({ status })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to update order status');
-    return data;
+    if (!res.ok) throw new Error(data.message || data.error || 'Failed to update order status');
+    return data.data || data;
   },
 
   // --- AUTHENTICATION ---
@@ -121,7 +163,7 @@ export const api = {
       body: JSON.stringify(credentials)
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Invalid login credentials');
+    if (!res.ok) throw new Error(data.message || data.error || 'Invalid login credentials');
     return data;
   },
 
@@ -132,7 +174,7 @@ export const api = {
       body: JSON.stringify(userData)
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Registration failed');
+    if (!res.ok) throw new Error(data.message || data.error || 'Registration failed');
     return data;
   }
 };

@@ -12,38 +12,53 @@ export default function LotCard({
 }) {
   const { currentRole } = useAuth();
 
+  if (!lot) return null;
+
   const isFarmer = currentRole === 'farmer';
   const isAwarded = lot.status === 'awarded';
 
-  const bids = lot.bids || [];
+  const bids = Array.isArray(lot.bids) ? lot.bids : [];
   const highestBid = bids.length > 0
-    ? bids.reduce((max, b) => (b.bidPricePerKg > max.bidPricePerKg ? b : max), bids[0])
+    ? bids.reduce((max, b) => {
+        const bPrice = b.offeredPricePerKg ?? b.bidPricePerKg ?? 0;
+        const maxPrice = max.offeredPricePerKg ?? max.bidPricePerKg ?? 0;
+        return bPrice > maxPrice ? b : max;
+      }, bids[0])
     : null;
 
+  const basePrice = lot.basePricePerKg ?? lot.reservePricePerKg ?? 0;
+  const highestPrice = highestBid
+    ? (highestBid.offeredPricePerKg ?? highestBid.bidPricePerKg)
+    : (lot.currentHighestBid || null);
+
+  const highestOrg = highestBid?.buyerOrganization || highestBid?.buyer?.organization || highestBid?.bidderName || lot.highestBidderOrg;
+
   const farmerName = lot.farmer?.name || 'Local Farmer';
-  const district = lot.farmer?.location?.district || lot.location?.district || 'Sri Lanka';
-  const imgSrc = getProduceImage(lot.crop, lot.category, lot.photoUrl);
+  const district = lot.farmer?.district || lot.farmer?.location?.district || lot.location?.district || 'Sri Lanka';
+  const imgSrc = getProduceImage(lot.crop, lot.category, lot.imageUrl || lot.photoUrl);
+  const isOrganic = lot.isOrganic || lot.specifications?.organicCertified;
+  const grade = lot.qualityGrade || lot.specifications?.grade;
 
   return (
     <div className={`lot-card ${isAwarded ? 'lot-awarded' : ''}`}>
       <div className="card-media">
         <img
           src={imgSrc}
-          alt={lot.crop}
+          alt={lot.crop || 'Produce'}
           loading="lazy"
           onError={(e) => {
             e.currentTarget.src = '/images/leeks.jpg';
           }}
         />
         <div className="card-badges">
-          <span className={`badge-pill cat-${lot.category}`}>
-            {lot.category.toUpperCase()}
+          <span className={`badge-pill cat-${lot.category || 'vegetables'}`}>
+            {(lot.category || 'vegetables').toUpperCase()}
           </span>
-          {lot.isOrganic && (
+          {isOrganic && (
             <span className="badge-pill organic">🌱 100% Organic</span>
           )}
-          {lot.qualityGrade && (
-            <span className="badge-pill grade">{lot.qualityGrade}</span>
+          {grade && (
+            <span className="badge-pill grade">{grade}</span>
           )}
         </div>
         <div className={`status-ribbon ${isAwarded ? 'awarded' : 'active'}`}>
@@ -67,35 +82,35 @@ export default function LotCard({
         <div className="lot-spec-grid">
           <div className="spec-item">
             <span className="spec-label">HARVEST VOLUME</span>
-            <span className="spec-val highlight">{lot.quantityKg.toLocaleString()} kg</span>
+            <span className="spec-val highlight">{(lot.quantityKg || 0).toLocaleString()} kg</span>
           </div>
           <div className="spec-item">
             <span className="spec-label">RESERVE BASE</span>
-            <span className="spec-val">Rs. {lot.reservePricePerKg} / kg</span>
+            <span className="spec-val">Rs. {basePrice} / kg</span>
           </div>
         </div>
 
         {/* Bid Status Box */}
         <div className="bid-status-box">
-          {highestBid ? (
+          {highestPrice && highestPrice > basePrice ? (
             <div className="highest-bid-content">
               <div className="bid-lead">
                 <Flame size={15} className="flame-icon" />
                 <span>TOP COMMERCIAL BID</span>
               </div>
               <div className="bid-numbers">
-                <span className="bid-amount">Rs. {highestBid.bidPricePerKg}</span>
+                <span className="bid-amount">Rs. {highestPrice}</span>
                 <span className="bid-unit">/ kg</span>
                 <span className="bid-count">({bids.length} bids logged)</span>
               </div>
               <span className="bidder-org">
-                By: {highestBid.buyer?.organization || highestBid.buyer?.name || 'Commercial Buyer'}
+                By: {highestOrg || 'Commercial Procurement'}
               </span>
             </div>
           ) : (
             <div className="no-bids-yet">
               <span>No bids logged yet.</span>
-              <small>Minimum opening bid: Rs. {lot.reservePricePerKg} / kg</small>
+              <small>Minimum opening bid: Rs. {basePrice} / kg</small>
             </div>
           )}
         </div>

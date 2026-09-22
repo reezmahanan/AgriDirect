@@ -70,9 +70,13 @@ export default function App() {
         search: searchTerm,
         sort: sortFilter
       });
-      setLots(data.lots || data || []);
+      const lotsArray = Array.isArray(data)
+        ? data
+        : (Array.isArray(data?.data) ? data.data : (Array.isArray(data?.lots) ? data.lots : []));
+      setLots(lotsArray);
     } catch (err) {
       console.error('Error fetching lots:', err);
+      setLots([]);
     } finally {
       setLoadingLots(false);
     }
@@ -81,16 +85,28 @@ export default function App() {
   const loadMarketPrices = async () => {
     try {
       const data = await api.getMarketPrices();
-      setMarketPrices(data.prices || data || []);
+      const pricesArray = Array.isArray(data)
+        ? data
+        : (Array.isArray(data?.data) ? data.data : (Array.isArray(data?.prices) ? data.prices : []));
+      setMarketPrices(pricesArray);
     } catch (err) {
       console.error('Error fetching market prices:', err);
+      setMarketPrices([]);
     }
   };
 
   const loadKPIStats = async () => {
     try {
       const data = await api.getKPIStats();
-      if (data) setKpiStats(data);
+      const statsObj = data?.data || data;
+      if (statsObj) {
+        setKpiStats({
+          activeLots: statsObj.activeLots ?? 0,
+          totalKg: statsObj.totalProduceKg ?? statsObj.totalKg ?? 0,
+          totalBids: statsObj.totalBids ?? 0,
+          transactedRs: statsObj.totalTransactedLKR ?? statsObj.transactedRs ?? 480000
+        });
+      }
     } catch (err) {
       console.error('Error fetching stats:', err);
     }
@@ -99,9 +115,13 @@ export default function App() {
   const loadOrders = async () => {
     try {
       const data = await api.getOrders();
-      setOrders(data.orders || data || []);
+      const ordersArray = Array.isArray(data)
+        ? data
+        : (Array.isArray(data?.data) ? data.data : (Array.isArray(data?.orders) ? data.orders : []));
+      setOrders(ordersArray);
     } catch (err) {
       console.error('Error fetching orders:', err);
+      setOrders([]);
     }
   };
 
@@ -112,7 +132,7 @@ export default function App() {
     loadOrders();
   }, []);
 
-  // Reload lots on filter change
+  // Reload lots on filter change with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       loadLots();
