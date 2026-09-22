@@ -893,18 +893,15 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(4px);
-  z-index: 100;
-  display: none;
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   overflow-y: auto;
-}
-
-.modal-overlay.active {
-  display: flex;
 }
 
 .modal-card {
@@ -1762,16 +1759,48 @@ select:focus,
   vertical-align: middle;
 }
 
-/* LOT CARD PRODUCT IMAGE */
-.lot-image-wrap {
-  position: relative;
-  width: 100%;
-  height: 190px;
-  overflow: hidden;
-  background-color: var(--slate-100);
+/* ==========================================================================
+   PRODUCE LOT CARD STYLES
+   ========================================================================== */
+.lots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
 }
 
-.lot-image {
+.lot-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--slate-200);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.lot-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-border);
+}
+
+.lot-card.lot-awarded {
+  opacity: 0.92;
+  border-color: var(--slate-300);
+}
+
+/* Card Media / Image */
+.card-media {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background-color: #f1f5f9;
+}
+
+.card-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1779,39 +1808,784 @@ select:focus,
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.lot-card:hover .lot-image {
+.lot-card:hover .card-media img {
   transform: scale(1.06);
 }
 
-.lot-image-badges {
+/* Badges floating on card media */
+.card-badges {
   position: absolute;
   top: 12px;
   left: 12px;
-  right: 12px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
   z-index: 2;
-  pointer-events: none;
+  max-width: 80%;
 }
 
-.lot-image-badges .lot-badge-row {
+.badge-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(15, 23, 42, 0.78);
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.badge-pill.organic {
+  background: #047857;
+  color: #ffffff;
+}
+
+.badge-pill.grade {
+  background: rgba(180, 83, 9, 0.9);
+  color: #ffffff;
+}
+
+.badge-pill.cat-vegetables { background: #059669; }
+.badge-pill.cat-fruits { background: #d97706; }
+.badge-pill.cat-grains { background: #b45309; }
+.badge-pill.cat-spices { background: #dc2626; }
+.badge-pill.cat-tubers { background: #78350f; }
+
+/* Status Ribbon (Bidding Open / Awarded) */
+.status-ribbon {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.status-ribbon.active {
+  background: rgba(4, 120, 87, 0.95);
+  color: #ffffff;
+}
+
+.status-ribbon.awarded {
+  background: rgba(71, 85, 105, 0.95);
+  color: #ffffff;
+}
+
+/* Card Body */
+.card-body {
+  padding: 18px 20px;
   display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 14px;
+}
+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.crop-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--slate-800);
+  line-height: 1.25;
+}
+
+.farmer-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.8rem;
+  color: var(--slate-500);
+}
+
+.farmer-name, .farmer-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.farmer-meta svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* Lot Spec Grid */
+.lot-spec-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spec-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--slate-400);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.spec-val {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--slate-700);
+}
+
+.spec-val.highlight {
+  color: var(--primary);
+}
+
+/* Bid Status Box */
+.bid-status-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+
+.highest-bid-content .bid-lead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #166534;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.highest-bid-content .flame-icon {
+  color: #ea580c;
+}
+
+.highest-bid-content .bid-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 4px 0 2px;
+}
+
+.highest-bid-content .bid-amount {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #15803d;
+  font-family: var(--font-heading);
+}
+
+.highest-bid-content .bid-unit {
+  font-size: 0.82rem;
+  color: var(--slate-500);
+  font-weight: 600;
+}
+
+.highest-bid-content .bid-count {
+  font-size: 0.74rem;
+  color: var(--slate-400);
+  margin-left: 6px;
+}
+
+.highest-bid-content .bidder-org {
+  font-size: 0.78rem;
+  color: var(--slate-600);
+  font-weight: 500;
+  display: block;
+}
+
+.no-bids-yet {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--slate-600);
+  font-size: 0.84rem;
+}
+
+.no-bids-yet small {
+  color: var(--slate-400);
+  font-size: 0.76rem;
+}
+
+/* Card Actions */
+.card-actions {
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.btn-bid-action, .btn-award-action {
+  width: 100%;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.btn-disabled {
+  background: var(--slate-100);
+  color: var(--slate-500);
+  border: 1px solid var(--slate-200);
+  cursor: not-allowed;
+}
+
+.farmer-action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.farmer-action-group .btn-award-action {
+  flex: 1;
+}
+
+.lot-manage-actions {
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
 
-.lot-image-badges .status-pill {
-  backdrop-filter: blur(8px);
-  box-shadow: var(--shadow-sm);
+.btn-icon {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--slate-200);
+  background: var(--white);
+  cursor: pointer;
+  color: var(--slate-600);
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
 }
 
-.lot-image-gradient {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 48px;
-  background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 100%);
-  pointer-events: none;
+.btn-icon:hover {
+  background: var(--slate-100);
+  color: var(--slate-800);
+  border-color: var(--slate-300);
 }
+
+.btn-icon.btn-delete:hover {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+/* ==========================================================================
+   MODAL COMPONENT ENHANCEMENTS
+   ========================================================================== */
+
+/* Produce Summary Header in Modals */
+.bid-produce-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.bid-produce-summary .crop-title {
+  font-size: 1.15rem;
+  margin-bottom: 2px;
+}
+
+.summary-meta {
+  font-size: 0.8rem;
+  color: var(--slate-500);
+}
+
+.summary-stat {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--slate-500);
+  font-weight: 700;
+  text-transform: uppercase;
+  display: block;
+}
+
+.stat-val {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* Price Input Wrapper */
+.field-label-accent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--slate-700);
+  margin-bottom: 6px;
+}
+
+.min-label {
+  font-size: 0.74rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.price-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currency-prefix {
+  position: absolute;
+  left: 14px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--slate-500);
+}
+
+.currency-suffix {
+  position: absolute;
+  right: 14px;
+  font-size: 0.84rem;
+  color: var(--slate-400);
+  font-weight: 600;
+}
+
+.input-price-large {
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
+  color: #065f46 !important;
+  padding-left: 44px !important;
+  padding-right: 50px !important;
+  height: 50px !important;
+}
+
+/* Valuation Box */
+.valuation-box {
+  background: #f0fdf4;
+  border: 1px solid #a7f3d0;
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  margin-bottom: 18px;
+}
+
+.val-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: #dcfce7;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.val-details {
+  flex: 1;
+}
+
+.val-title {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #166534;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.val-math {
+  font-size: 0.82rem;
+  color: var(--slate-600);
+}
+
+.val-total {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #15803d;
+  flex-shrink: 0;
+}
+
+/* Award Modal Ladder */
+.bids-ladder-container {
+  margin: 16px 0;
+}
+
+.ladder-heading {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--slate-700);
+  margin-bottom: 10px;
+}
+
+.bids-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.bid-ladder-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bid-ladder-item:hover {
+  border-color: var(--primary);
+  background: #f0fdf4;
+}
+
+.bid-ladder-item.selected {
+  border-color: var(--primary);
+  background: #ecfdf5;
+  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.2);
+}
+
+.bid-rank {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #b45309;
+  flex-shrink: 0;
+}
+
+.bid-buyer-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.buyer-org-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+.buyer-contact {
+  font-size: 0.76rem;
+  color: var(--slate-500);
+}
+
+.buyer-note-snippet {
+  font-size: 0.75rem;
+  color: var(--slate-600);
+  font-style: italic;
+}
+
+.bid-valuation-pill {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pill-price {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.pill-total {
+  font-size: 0.76rem;
+  color: var(--slate-500);
+}
+
+.award-summary-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-top: 14px;
+}
+
+.award-summary-box .summary-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.award-summary-box .col-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--slate-400);
+  text-transform: uppercase;
+}
+
+.award-summary-box .col-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+.text-green { color: #15803d !important; }
+.font-bold { font-weight: 800 !important; }
+
+/* Orders Modal */
+.modal-title-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-title-with-icon h3 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--slate-800);
+  line-height: 1.2;
+}
+
+.modal-title-with-icon .subtitle {
+  font-size: 0.8rem;
+  color: var(--slate-500);
+}
+
+.empty-orders-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--slate-50);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--slate-300);
+}
+
+.empty-orders-state svg {
+  margin: 0 auto 12px;
+  color: var(--slate-400);
+}
+
+.empty-orders-state h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--slate-700);
+  margin-bottom: 6px;
+}
+
+.empty-orders-state p {
+  font-size: 0.82rem;
+  color: var(--slate-500);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.order-tag-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tracking-id-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: var(--slate-100);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--slate-800);
+  border: 1px solid var(--slate-300);
+}
+
+.milestone-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+}
+
+.milestone-badge.status-dispatched { background: #dbeafe; color: #1e40af; }
+.milestone-badge.status-in_transit { background: #fef3c7; color: #b45309; }
+.milestone-badge.status-delivered { background: #dcfce7; color: #166534; }
+
+.order-valuation {
+  text-align: right;
+}
+
+.order-total-val {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #15803d;
+  font-family: var(--font-heading);
+}
+
+.order-subtext {
+  font-size: 0.74rem;
+  color: var(--slate-500);
+}
+
+.order-parties-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.party-box {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.party-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--slate-400);
+  letter-spacing: 0.04em;
+}
+
+.party-name {
+  font-size: 0.88rem;
+  color: var(--slate-800);
+}
+
+.party-address, .party-phone {
+  font-size: 0.76rem;
+  color: var(--slate-500);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.courier-info-bar {
+  background: #f1f5f9;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--slate-600);
+  margin-bottom: 12px;
+}
+
+.courier-meta {
+  display: flex;
+  gap: 12px;
+}
+
+/* Stepper */
+.shipment-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 16px;
+  padding: 0 10px;
+}
+
+.step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+
+.step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--slate-200);
+  color: var(--slate-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.step-node.completed .step-circle {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.step-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--slate-500);
+}
+
+.step-node.completed .step-label {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.step-line {
+  flex: 1;
+  height: 3px;
+  background: var(--slate-200);
+  margin: 0 8px;
+  margin-bottom: 18px;
+}
+
+.step-line.completed {
+  background: var(--primary);
+}
+
+.escrow-assurance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--slate-600);
+}
+

@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Truck, CheckCircle2, Clock, Search, MapPin, Phone, ShieldCheck } from 'lucide-react';
 import { api } from '../../services/api';
 
 export default function OrdersModal({ isOpen, onClose, orders, onRefresh, showToast }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -38,7 +47,7 @@ export default function OrdersModal({ isOpen, onClose, orders, onRefresh, showTo
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-card modal-large">
         <div className="modal-header">
           <div className="modal-title-with-icon">

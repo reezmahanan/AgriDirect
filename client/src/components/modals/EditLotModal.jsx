@@ -13,12 +13,21 @@ export default function EditLotModal({ isOpen, onClose, lot, onSuccess, showToas
   useEffect(() => {
     if (lot) {
       setQuantityKg(lot.quantityKg || '');
-      setReservePricePerKg(lot.reservePricePerKg || '');
-      setPackagingSpecs(lot.packagingSpecs || '');
-      setQualityGrade(lot.qualityGrade || 'Grade A Premium');
-      setIsOrganic(Boolean(lot.isOrganic));
+      setReservePricePerKg(lot.basePricePerKg || lot.reservePricePerKg || '');
+      setPackagingSpecs(lot.specifications?.packaging || lot.packagingSpecs || '');
+      setQualityGrade(lot.specifications?.grade || lot.qualityGrade || 'Grade A Premium');
+      setIsOrganic(Boolean(lot.specifications?.organicCertified ?? lot.isOrganic));
     }
   }, [lot]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !lot) return null;
 
@@ -28,6 +37,7 @@ export default function EditLotModal({ isOpen, onClose, lot, onSuccess, showToas
     try {
       await api.updateLot(lot._id, {
         quantityKg: Number(quantityKg),
+        basePricePerKg: Number(reservePricePerKg),
         reservePricePerKg: Number(reservePricePerKg),
         packagingSpecs,
         qualityGrade,
@@ -44,7 +54,7 @@ export default function EditLotModal({ isOpen, onClose, lot, onSuccess, showToas
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-card">
         <div className="modal-header">
           <h3>Edit Harvest Lot ({lot.crop})</h3>

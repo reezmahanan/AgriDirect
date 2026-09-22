@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, Sparkles } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -16,6 +16,15 @@ export default function PostLotModal({ isOpen, onClose, onSuccess, showToast }) 
   const [district, setDistrict] = useState('Nuwara Eliya');
   const [cityOrVillage, setCityOrVillage] = useState('Kandapola');
   const [isOrganic, setIsOrganic] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -43,8 +52,9 @@ export default function PostLotModal({ isOpen, onClose, onSuccess, showToast }) 
         farmer: {
           name: currentUser?.name || 'Local Farmer',
           organization: currentUser?.organization || 'Hill Country Farm Co.',
-          phone: currentUser?.phone || '+94 77 220 1199',
-          location: { district }
+          district,
+          village: cityOrVillage,
+          phone: currentUser?.phone || '+94 77 123 4567'
         }
       });
       showToast(`Harvest lot for ${crop} published to the exchange!`, 'success');
@@ -58,7 +68,7 @@ export default function PostLotModal({ isOpen, onClose, onSuccess, showToast }) 
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-card">
         <div className="modal-header">
           <h3>List Morning Harvest Lot</h3>

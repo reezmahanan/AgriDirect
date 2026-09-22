@@ -7,14 +7,23 @@ export default function BiddingModal({ isOpen, onClose, lot, onBidSuccess, showT
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  const bids = lot?.bids || [];
+  const bids = Array.isArray(lot?.bids) ? lot.bids : [];
   const highestBid = bids.length > 0
-    ? bids.reduce((max, b) => (b.bidPricePerKg > max.bidPricePerKg ? b : max), bids[0])
+    ? bids.reduce((max, b) => {
+        const bPrice = b.offeredPricePerKg ?? b.bidPricePerKg ?? 0;
+        const maxPrice = max.offeredPricePerKg ?? max.bidPricePerKg ?? 0;
+        return bPrice > maxPrice ? b : max;
+      }, bids[0])
     : null;
 
-  const minBid = highestBid
-    ? highestBid.bidPricePerKg + 5
-    : (lot?.reservePricePerKg || 100);
+  const basePrice = lot?.basePricePerKg ?? lot?.reservePricePerKg ?? 100;
+  const highestPrice = highestBid
+    ? (highestBid.offeredPricePerKg ?? highestBid.bidPricePerKg)
+    : (lot?.currentHighestBid || 0);
+
+  const minBid = highestPrice && highestPrice > basePrice
+    ? highestPrice + 5
+    : basePrice;
 
   const [bidPrice, setBidPrice] = useState(minBid);
   const [buyerName, setBuyerName] = useState('');
@@ -24,8 +33,7 @@ export default function BiddingModal({ isOpen, onClose, lot, onBidSuccess, showT
 
   useEffect(() => {
     if (lot) {
-      const mb = highestBid ? highestBid.bidPricePerKg + 5 : (lot.reservePricePerKg || 100);
-      setBidPrice(mb);
+      setBidPrice(minBid);
     }
     if (currentUser) {
       setBuyerName(currentUser.name || '');
@@ -36,7 +44,16 @@ export default function BiddingModal({ isOpen, onClose, lot, onBidSuccess, showT
       setBuyerOrg('Commercial Supermarket / Hotel');
       setBuyerPhone('+94 77 123 4567');
     }
-  }, [lot, currentUser]);
+  }, [lot, currentUser, minBid]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !lot) return null;
 
@@ -71,7 +88,7 @@ export default function BiddingModal({ isOpen, onClose, lot, onBidSuccess, showT
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-card">
         <div className="modal-header">
           <h3>Place Commercial Bid</h3>
@@ -86,13 +103,13 @@ export default function BiddingModal({ isOpen, onClose, lot, onBidSuccess, showT
             <div>
               <h4 className="crop-title">{lot.crop}</h4>
               <span className="summary-meta">
-                Available Volume: <strong>{lot.quantityKg.toLocaleString()} kg</strong> | Reserve Base: <strong>Rs. {lot.reservePricePerKg}/kg</strong>
+                Available Volume: <strong>{(lot.quantityKg || 0).toLocaleString()} kg</strong> | Reserve Base: <strong>Rs. {basePrice}/kg</strong>
               </span>
             </div>
             <div className="summary-stat">
               <span className="stat-label">Current High</span>
               <span className="stat-val">
-                {highestBid ? `Rs. ${highestBid.bidPricePerKg}/kg` : 'No Bids'}
+                {highestPrice ? `Rs. ${highestPrice}/kg` : 'No Bids'}
               </span>
             </div>
           </div>

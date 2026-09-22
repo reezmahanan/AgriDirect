@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Award, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { api } from '../../services/api';
 
@@ -7,14 +7,29 @@ export default function AwardModal({ isOpen, onClose, lot, onSuccess, showToast 
   const [selectedBidId, setSelectedBidId] = useState(null);
   const [farmerNotes, setFarmerNotes] = useState('');
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !lot) return null;
 
-  const bids = [...(lot.bids || [])].sort((a, b) => b.bidPricePerKg - a.bidPricePerKg);
-  const currentSelected = bids.find((b) => b._id === selectedBidId) || bids[0] || null;
+  const bids = [...(lot.bids || [])].sort((a, b) => {
+    const aP = a.offeredPricePerKg ?? a.bidPricePerKg ?? 0;
+    const bP = b.offeredPricePerKg ?? b.bidPricePerKg ?? 0;
+    return bP - aP;
+  });
 
-  const totalContractVal = currentSelected
-    ? Math.round(currentSelected.bidPricePerKg * lot.quantityKg)
+  const currentSelected = bids.find((b) => b._id === selectedBidId) || bids[0] || null;
+  const currentPrice = currentSelected
+    ? (currentSelected.offeredPricePerKg ?? currentSelected.bidPricePerKg ?? 0)
     : 0;
+
+  const totalContractVal = Math.round(currentPrice * (lot.quantityKg || 0));
 
   const handleAward = async () => {
     if (!currentSelected) {
@@ -28,7 +43,7 @@ export default function AwardModal({ isOpen, onClose, lot, onSuccess, showToast 
         winningBidId: currentSelected._id,
         farmerNotes
       });
-      showToast(`Deal awarded to ${currentSelected.buyer?.organization || currentSelected.buyer?.name}! Escrow order generated.`, 'success');
+      showToast(`Deal awarded to ${currentSelected.buyer?.organization || currentSelected.buyer?.name || currentSelected.buyerOrganization || currentSelected.bidderName}! Escrow order generated.`, 'success');
       onSuccess();
       onClose();
     } catch (err) {
@@ -39,7 +54,7 @@ export default function AwardModal({ isOpen, onClose, lot, onSuccess, showToast 
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-card modal-large">
         <div className="modal-header">
           <h3>Review Commercial Bids & Award Contract</h3>
@@ -54,7 +69,7 @@ export default function AwardModal({ isOpen, onClose, lot, onSuccess, showToast 
             <div>
               <h4 className="crop-title">{lot.crop}</h4>
               <span className="summary-meta">
-                Available: <strong>{lot.quantityKg.toLocaleString()} kg</strong> | Reserve Base: <strong>Rs. {lot.reservePricePerKg}/kg</strong>
+                Available: <strong>{(lot.quantityKg || 0).toLocaleString()} kg</strong> | Reserve Base: <strong>Rs. {lot.basePricePerKg || lot.reservePricePerKg}/kg</strong>
               </span>
             </div>
             <div className="summary-stat">
@@ -79,7 +94,8 @@ export default function AwardModal({ isOpen, onClose, lot, onSuccess, showToast 
                 {bids.map((b, idx) => {
                   const isTop = idx === 0;
                   const isSelected = (currentSelected?._id === b._id);
-                  const contractVal = Math.round(b.bidPricePerKg * lot.quantityKg);
+                  const bPrice = b.offeredPricePerKg ?? b.bidPricePerKg ?? 0;
+                  const contractVal = Math.round(bPrice * (lot.quantityKg || 0));
 
                   return (
                     <div
@@ -92,17 +108,17 @@ export default function AwardModal({ isOpen, onClose, lot, onSuccess, showToast 
                       </div>
                       <div className="bid-buyer-info">
                         <span className="buyer-org-name">
-                          {b.buyer?.organization || b.buyer?.name || 'Commercial Procurement'}
+                          {b.buyer?.organization || b.buyerOrganization || b.buyer?.name || b.bidderName || 'Commercial Procurement'}
                         </span>
                         <span className="buyer-contact">
-                          Contact: {b.buyer?.phone || 'Verified Buyer'} • {new Date(b.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          Contact: {b.buyer?.phone || 'Verified Buyer'} • {new Date(b.createdAt || b.placedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
-                        {b.buyer?.notes && (
-                          <span className="buyer-note-snippet">"{b.buyer.notes}"</span>
+                        {(b.buyer?.notes || b.notes) && (
+                          <span className="buyer-note-snippet">"{b.buyer?.notes || b.notes}"</span>
                         )}
                       </div>
                       <div className="bid-valuation-pill">
-                        <span className="pill-price">Rs. {b.bidPricePerKg} / kg</span>
+                        <span className="pill-price">Rs. {bPrice} / kg</span>
                         <span className="pill-total">Total: Rs. {contractVal.toLocaleString()}</span>
                       </div>
                     </div>
@@ -117,11 +133,11 @@ export default function AwardModal({ isOpen, onClose, lot, onSuccess, showToast 
             <div className="award-summary-box">
               <div className="summary-col">
                 <span className="col-label">Selected Winning Buyer</span>
-                <span className="col-val">{currentSelected.buyer?.organization || currentSelected.buyer?.name}</span>
+                <span className="col-val">{currentSelected.buyer?.organization || currentSelected.buyerOrganization || currentSelected.buyer?.name || currentSelected.bidderName}</span>
               </div>
               <div className="summary-col">
                 <span className="col-label">Winning Rate</span>
-                <span className="col-val text-green">Rs. {currentSelected.bidPricePerKg} / kg</span>
+                <span className="col-val text-green">Rs. {currentPrice} / kg</span>
               </div>
               <div className="summary-col">
                 <span className="col-label">Guaranteed Escrow Payout</span>

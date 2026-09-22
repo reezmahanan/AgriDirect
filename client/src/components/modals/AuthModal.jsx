@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, LogIn, UserPlus } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -20,6 +20,21 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', showT
   const [regOrg, setRegOrg] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regDistrict, setRegDistrict] = useState('Colombo');
+
+  useEffect(() => {
+    if (isOpen) {
+      setTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -62,7 +77,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', showT
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-card">
         <div className="modal-header">
           <div className="auth-tabs">
