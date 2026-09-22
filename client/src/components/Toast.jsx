@@ -5,21 +5,22 @@ export default function Toast({ toasts, onDismiss }) {
   if (!toasts || toasts.length === 0) return null;
 
   return (
-    <div className="toast-container">
+    <div className="toast-container" role="status" aria-live="polite">
       {toasts.map((t) => (
-        <div key={t.id} className={`toast-item toast-${t.type || 'info'}`}>
+        <div key={t.id} className={`toast-item toast toast-${t.type || 'info'} ${t.type || 'info'}`}>
           <div className="toast-icon">
-            {t.type === 'success' && <CheckCircle2 size={18} />}
-            {t.type === 'error' && <AlertCircle size={18} />}
-            {(!t.type || t.type === 'info') && <Info size={18} />}
+            {t.type === 'success' && <CheckCircle2 size={20} />}
+            {t.type === 'error' && <AlertCircle size={20} />}
+            {(!t.type || t.type === 'info') && <Info size={20} />}
           </div>
           <div className="toast-msg">{t.message}</div>
           <button
             className="toast-close"
             onClick={() => onDismiss(t.id)}
             type="button"
+            aria-label="Close notification"
           >
-            <X size={14} />
+            <X size={16} />
           </button>
         </div>
       ))}
