@@ -43,8 +43,12 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', showT
     setLoading(true);
     try {
       const data = await api.login({ email: loginEmail, password: loginPassword });
-      login(data.user);
-      showToast(`Welcome back, ${data.user.name}!`, 'success');
+      const user = data?.user || data?.data || data;
+      if (!user || !user.role) {
+        throw new Error('Authentication response did not contain user details.');
+      }
+      login(user);
+      showToast(`Welcome back, ${user.name}! Signed in as ${user.role.toUpperCase()}.`, 'success');
       onClose();
     } catch (err) {
       showToast(err.message, 'error');
@@ -64,10 +68,15 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', showT
         role: regRole,
         organization: regOrg,
         phone: regPhone,
+        district: regDistrict,
         location: { district: regDistrict }
       });
-      login(data.user);
-      showToast(`Registration successful! Welcome to AgriDirect.`, 'success');
+      const user = data?.user || data?.data || data;
+      if (!user || !user.role) {
+        throw new Error('Registration response did not contain user details.');
+      }
+      login(user);
+      showToast(`Registration successful! Welcome to AgriDirect, ${user.name}.`, 'success');
       onClose();
     } catch (err) {
       showToast(err.message, 'error');

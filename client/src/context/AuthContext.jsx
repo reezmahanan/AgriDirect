@@ -32,6 +32,7 @@ export function AuthProvider({ children }) {
   }, [currentUser]);
 
   const login = (user) => {
+    if (!user) return;
     setCurrentUser(user);
     if (user.role) {
       setCurrentRole(user.role);

@@ -164,7 +164,8 @@ export const api = {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || data.error || 'Invalid login credentials');
-    return data;
+    const userObj = data.data || data.user || data;
+    return { ...data, user: userObj, data: userObj };
   },
 
   async register(userData) {
@@ -174,7 +175,8 @@ export const api = {
       body: JSON.stringify(userData)
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || data.error || 'Registration failed');
-    return data;
+    if (!res.ok) throw new Error(data.message || data.error || (data.errors && data.errors[0]) || 'Registration failed');
+    const userObj = data.data || data.user || data;
+    return { ...data, user: userObj, data: userObj };
   }
 };
