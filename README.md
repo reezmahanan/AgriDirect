@@ -271,29 +271,10 @@ npm start
 * Access the interactive React dev environment at:  
   👉 **[http://localhost:5173](http://localhost:5173)**
 
----
-
-## ☁️ 8. Cloud Deployment (Render.com / Railway.app)
-
-The project is pre-configured with **Cloud MongoDB URI detection** and **automatic self-seeding**:
-
-1. **Database (MongoDB Atlas):**
-   * Create a free **M0 Cluster** at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas).
-   * In **Network Access**, allow access from anywhere (`0.0.0.0/0`).
-   * Copy the connection string:
-     ```text
-     mongodb+srv://<username>:<password>@cluster0.abcde.mongodb.net/agridirect_db?retryWrites=true&w=majority
-     ```
-2. **Deploy Service (Render / Railway):**
-   * Connect your GitHub repository: `reezmahanan/AgriDirect`.
-   * **Build Command:** `npm run build`
-   * **Start Command:** `npm start`
-   * **Environment Variable:** Set `MONGO_URI` to your Atlas connection string.
-3. The server connects to MongoDB, auto-seeds initial produce lots and market benchmark prices, and launches live!
 
 ---
 
-## 🧪 9. Testing & Quality Assurance Verification
+## 🧪 8. Testing & Quality Assurance Verification
 
 | Test ID | Test Scenario | Input Data | Expected Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
