@@ -20,8 +20,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, '../client')));
+const fs = require('fs');
+
+// Serve static frontend files (prefers compiled React app in client/dist)
+const clientDistPath = path.join(__dirname, '../client/dist');
+const clientStaticPath = fs.existsSync(clientDistPath) ? clientDistPath : path.join(__dirname, '../client');
+app.use(express.static(clientStaticPath));
+
+// Also serve images statically if requested from public/images
+app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
+app.use('/images', express.static(path.join(__dirname, '../client/images')));
 
 // Mount API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -35,14 +43,18 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'healthy',
     service: 'AgriDirect Farm-to-Business Daily Harvest Bidding Exchange API',
+    frontend: fs.existsSync(clientDistPath) ? 'React SPA (Vite)' : 'Static HTML',
     database: 'MongoDB',
     timestamp: new Date().toISOString()
   });
 });
 
-// Fallback to client/index.html
+// Fallback to index.html for Single Page Application routing
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/index.html'));
+  const indexPath = fs.existsSync(path.join(clientDistPath, 'index.html'))
+    ? path.join(clientDistPath, 'index.html')
+    : path.join(clientStaticPath, 'index.html');
+  res.sendFile(indexPath);
 });
 
 // Centralized error handling

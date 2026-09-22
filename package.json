@@ -5,6 +5,10 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
+    "build": "npm --prefix client install && npm --prefix client run build",
+    "client:dev": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build",
+    "server:dev": "node --watch server/server.js",
     "seed": "node server/seed.js"
   },
   "dependencies": {
